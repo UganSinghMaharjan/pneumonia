@@ -1,0 +1,9 @@
+{
+  "python.defaultInterpreterPath": "${workspaceFolder}/pnuebackend/venv/bin/python",
+  "python.analysis.extraPaths": [
+    "${workspaceFolder}/pnuebackend"
+  ],
+  "python.autoComplete.extraPaths": [
+    "${workspaceFolder}/pnuebackend"
+  ]
+}
