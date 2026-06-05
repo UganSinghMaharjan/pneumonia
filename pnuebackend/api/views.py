@@ -29,15 +29,21 @@ IMG_HEIGHT, IMG_WIDTH = 224, 224
 
 class RegisterView(APIView):
     def post(self, request, *args, **kwargs):
-        username = request.data.get('username')
         email = request.data.get('email')
         password = request.data.get('password')
+        if email:
+            email = email.strip().lower()
 
-        if not username or not password:
-            return Response({'error': 'Username and password are required.'}, status=status.HTTP_400_BAD_REQUEST)
+        if not email or not password:
+            return Response({'error': 'Email and password are required.'}, status=status.HTTP_400_BAD_REQUEST)
 
-        if User.objects.filter(username=username).exists():
-            return Response({'error': 'Username already exists.'}, status=status.HTTP_400_BAD_REQUEST)
+        username = email # Use email as the internal Django username
+
+        if email == settings.DOCTOR_EMAIL:
+            return Response({'error': 'Cannot register this account.'}, status=status.HTTP_403_FORBIDDEN)
+
+        if User.objects.filter(email=email).exists() or User.objects.filter(username=username).exists():
+            return Response({'error': 'Email already exists.'}, status=status.HTTP_400_BAD_REQUEST)
 
         try:
             user = User.objects.create_user(username=username, email=email, password=password)
@@ -45,28 +51,58 @@ class RegisterView(APIView):
             return Response({
                 'token': token.key,
                 'username': user.username,
-                'email': user.email
+                'email': user.email,
+                'role': 'patient'
             }, status=status.HTTP_201_CREATED)
         except Exception as e:
             return Response({'error': str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
 class LoginView(APIView):
     def post(self, request, *args, **kwargs):
-        username = request.data.get('username')
+        email = request.data.get('email')
         password = request.data.get('password')
+        if email:
+            email = email.strip().lower()
 
-        if not username or not password:
-            return Response({'error': 'Username and password are required.'}, status=status.HTTP_400_BAD_REQUEST)
+        if not email or not password:
+            return Response({'error': 'Email and password are required.'}, status=status.HTTP_400_BAD_REQUEST)
 
-        user = authenticate(username=username, password=password)
+        # Check for hardcoded doctor account
+        if email == settings.DOCTOR_EMAIL and password == settings.DOCTOR_PASSWORD:
+            # For the doctor, we generate a dummy token or create a hidden user if one doesn't exist
+            # To be safe and utilize DRF token auth, we can ensure a doctor user exists.
+            doctor_user, _ = User.objects.get_or_create(username=email, email=email)
+            if not doctor_user.has_usable_password():
+                doctor_user.set_password(password)
+                doctor_user.save()
+            token, _ = Token.objects.get_or_create(user=doctor_user)
+            return Response({
+                'token': token.key,
+                'username': doctor_user.username,
+                'email': doctor_user.email,
+                'role': 'doctor'
+            }, status=status.HTTP_200_OK)
+
+        # Lookup user by email
+        user_obj = User.objects.filter(email=email).first()
+        
+        # Authenticate using the actual username associated with that email
+        actual_username = user_obj.username if user_obj else None
+        user = authenticate(username=actual_username, password=password)
+        
         if not user:
+            return Response({'error': 'Invalid credentials.'}, status=status.HTTP_401_UNAUTHORIZED)
+
+        # Prevent patients from logging into the doctor account if they somehow managed to change the password
+        if user.email == settings.DOCTOR_EMAIL:
             return Response({'error': 'Invalid credentials.'}, status=status.HTTP_401_UNAUTHORIZED)
 
         token, created = Token.objects.get_or_create(user=user)
         return Response({
             'token': token.key,
             'username': user.username,
-            'email': user.email
+            'email': user.email,
+            'role': 'patient'
         }, status=status.HTTP_200_OK)
 
 class UserProfileView(APIView):

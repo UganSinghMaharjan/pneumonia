@@ -1,24 +1,35 @@
 @import "tailwindcss";
 
 @theme {
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
+  --color-brand-indigo: #36346B;
+  --color-brand-lavender: #AAA7EA;
+  --color-brand-teal: #00A3AD;
+  --color-brand-navy: #2D3748;
+  --color-brand-surface: #ECEEF0;
+  --color-brand-border: #DADCDD;
+  --color-brand-muted: #6B7280;
+  --color-brand-white: #FFFFFF;
+
+  --font-sans: var(--font-inter), sans-serif;
 }
 
-:root {
-  --background: #f8fafc;
-  --foreground: #0f172a;
+@layer base {
+  :root {
+    --background: #ECEEF0;
+    --foreground: #2D3748;
+  }
+
+  body {
+    background-color: var(--background);
+    color: var(--foreground);
+    font-family: var(--font-sans);
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+  }
 }
 
-body {
-  color: var(--foreground);
-  background: var(--background);
-  font-family: Arial, Helvetica, sans-serif;
-  min-height: 100vh;
-  background-image: 
-    radial-gradient(at 0% 0%, hsla(220, 100%, 98%, 1) 0, transparent 50%), 
-    radial-gradient(at 100% 0%, hsla(270, 70%, 97%, 1) 0, transparent 50%), 
-    radial-gradient(at 50% 100%, hsla(200, 50%, 98%, 1) 0, transparent 50%);
-  background-attachment: fixed;
-  background-size: cover;
+@layer utilities {
+  .shadow-soft {
+    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05), 0 2px 4px -1px rgba(0, 0, 0, 0.03);
+  }
 }

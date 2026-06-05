@@ -127,3 +127,7 @@ MEDIA_ROOT = BASE_DIR / 'media'
 
 # CORS
 CORS_ALLOW_ALL_ORIGINS = True
+
+# Hardcoded Doctor Credentials
+DOCTOR_EMAIL = 'dr_maharjans@gmail.com'
+DOCTOR_PASSWORD = 'doctor@123'
