@@ -9,7 +9,8 @@ import {
   Users,
   Settings,
   ShieldCheck,
-  FileText
+  FileText,
+  Clock
 } from "lucide-react";
 
 export function Sidebar() {
@@ -22,14 +23,15 @@ export function Sidebar() {
 
   const doctorItems = [
     { name: "Dashboard", href: "/doctor-dashboard", icon: LayoutDashboard },
+    { name: "Appointments", href: "/doctor-dashboard/appointments", icon: Clock },
     { name: "Scans", href: "/doctor-dashboard/scans", icon: Activity },
     { name: "Patients", href: "/doctor-dashboard/patients", icon: Users },
-    { name: "Reports", href: "/doctor-dashboard/reports", icon: FileText },
     { name: "Settings", href: "/doctor-dashboard/settings", icon: Settings },
   ];
 
   const patientItems = [
     { name: "Dashboard", href: "/patient-dashboard", icon: LayoutDashboard },
+    { name: "Appointments", href: "/patient-dashboard/appointments", icon: Clock },
     { name: "My Scans", href: "/patient-dashboard/scans", icon: Activity },
     { name: "My Prescriptions", href: "/patient-dashboard/prescriptions", icon: FileText },
     { name: "Settings", href: "/patient-dashboard/settings", icon: Settings },
