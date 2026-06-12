@@ -23,7 +23,7 @@ import {
   Phone,
   ArrowRight,
   ShieldCheck,
-  Stethoscope
+  Stethoscope,
 } from "lucide-react";
 
 interface UserProfile {
@@ -86,7 +86,7 @@ const mockHospitals = [
     distance: "1.2 km",
     status: "Open Now",
     open: true,
-    specialty: "Respiratory Specialists & Asthma Center"
+    specialty: "Respiratory Specialists & Asthma Center",
   },
   {
     id: 2,
@@ -96,7 +96,7 @@ const mockHospitals = [
     distance: "2.5 km",
     status: "Open Now",
     open: true,
-    specialty: "Pneumonia Treatment & Pulmonary Rehab"
+    specialty: "Pneumonia Treatment & Pulmonary Rehab",
   },
   {
     id: 3,
@@ -106,7 +106,7 @@ const mockHospitals = [
     distance: "4.1 km",
     status: "Closed",
     open: false,
-    specialty: "Comprehensive Pulmonary & Critical Care"
+    specialty: "Comprehensive Pulmonary & Critical Care",
   },
   {
     id: 4,
@@ -116,8 +116,8 @@ const mockHospitals = [
     distance: "5.0 km",
     status: "Open 24/7",
     open: true,
-    specialty: "Pneumonia Checkup & Inpatient Respiratory Care"
-  }
+    specialty: "Pneumonia Checkup & Inpatient Respiratory Care",
+  },
 ];
 
 export default function PatientDashboard() {
@@ -136,7 +136,7 @@ export default function PatientDashboard() {
     gender: "",
     contact_number: "",
     address: "",
-    blood_group: ""
+    blood_group: "",
   });
 
   // Data States
@@ -172,7 +172,9 @@ export default function PatientDashboard() {
     const headers = { Authorization: `Token ${authToken}` };
     try {
       // 1. Fetch Profile
-      const profileRes = await axios.get("http://localhost:8000/api/user/", { headers });
+      const profileRes = await axios.get("http://localhost:8000/api/user/", {
+        headers,
+      });
       setProfile(profileRes.data);
       setEditForm({
         first_name: profileRes.data.first_name || "",
@@ -181,25 +183,35 @@ export default function PatientDashboard() {
         gender: profileRes.data.gender || "",
         contact_number: profileRes.data.contact_number || "",
         address: profileRes.data.address || "",
-        blood_group: profileRes.data.blood_group || ""
+        blood_group: profileRes.data.blood_group || "",
       });
 
       // 2. Fetch Scans
-      const scansRes = await axios.get("http://localhost:8000/api/scans/", { headers });
+      const scansRes = await axios.get("http://localhost:8000/api/scans/", {
+        headers,
+      });
       setScans(scansRes.data);
 
       // 3. Fetch Appointments
-      const appRes = await axios.get("http://localhost:8000/api/appointments/", { headers });
+      const appRes = await axios.get(
+        "http://localhost:8000/api/appointments/",
+        { headers },
+      );
       setAppointments(appRes.data);
 
       // 4. Fetch Prescriptions
-      const presRes = await axios.get("http://localhost:8000/api/prescriptions/", { headers });
+      const presRes = await axios.get(
+        "http://localhost:8000/api/prescriptions/",
+        { headers },
+      );
       setPrescriptions(presRes.data);
 
       // 5. Fetch Medical History
-      const histRes = await axios.get("http://localhost:8000/api/medical-histories/", { headers });
+      const histRes = await axios.get(
+        "http://localhost:8000/api/medical-histories/",
+        { headers },
+      );
       setHistory(histRes.data);
-
     } catch (err: any) {
       console.error("Error fetching dashboard data", err);
       if (err.response?.status === 401) {
@@ -225,9 +237,9 @@ export default function PatientDashboard() {
           gender: editForm.gender,
           contact_number: editForm.contact_number,
           address: editForm.address,
-          blood_group: editForm.blood_group
+          blood_group: editForm.blood_group,
         },
-        { headers }
+        { headers },
       );
       setProfile((prev: any) => ({ ...prev, ...response.data }));
       setIsEditing(false);
@@ -249,17 +261,20 @@ export default function PatientDashboard() {
       <div className="min-h-screen flex items-center justify-center bg-brand-surface">
         <div className="flex flex-col items-center space-y-4">
           <div className="w-10 h-10 border-4 border-brand-surface border-t-brand-indigo rounded-full animate-spin" />
-          <p className="text-brand-muted font-medium text-sm">Securing clinical workspace...</p>
+          <p className="text-brand-muted font-medium text-sm">
+            Securing clinical workspace...
+          </p>
         </div>
       </div>
     );
   }
 
   // Filter Clinical Centers
-  const filteredHospitals = mockHospitals.filter((hospital) =>
-    hospital.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-    hospital.address.toLowerCase().includes(searchQuery.toLowerCase()) ||
-    hospital.specialty.toLowerCase().includes(searchQuery.toLowerCase())
+  const filteredHospitals = mockHospitals.filter(
+    (hospital) =>
+      hospital.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      hospital.address.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      hospital.specialty.toLowerCase().includes(searchQuery.toLowerCase()),
   );
 
   // Status Badge Mapper
@@ -308,7 +323,8 @@ export default function PatientDashboard() {
                 My Patient Dashboard
               </h1>
               <p className="text-brand-muted font-medium mt-1">
-                Access your personal medical files, clinical updates, and schedule appointments.
+                Access your personal medical files, clinical updates, and
+                schedule appointments.
               </p>
             </div>
             <div>
@@ -326,12 +342,13 @@ export default function PatientDashboard() {
             <div className="flex justify-center items-center h-64">
               <div className="flex flex-col items-center space-y-3">
                 <div className="w-8 h-8 border-4 border-brand-surface border-t-brand-indigo rounded-full animate-spin" />
-                <p className="text-brand-muted font-semibold text-sm">Retrieving your profile files...</p>
+                <p className="text-brand-muted font-semibold text-sm">
+                  Retrieving your profile files...
+                </p>
               </div>
             </div>
           ) : (
             <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-              
               {/* Left Column: Personal Profile, Prescriptions, History */}
               <div className="lg:col-span-1 space-y-8">
                 {/* Profile Card */}
@@ -356,20 +373,34 @@ export default function PatientDashboard() {
                     <form onSubmit={handleUpdateProfile} className="space-y-4">
                       <div className="grid grid-cols-2 gap-4">
                         <div>
-                          <label className="block text-xs font-bold text-brand-muted mb-1 uppercase tracking-wider">First Name</label>
+                          <label className="block text-xs font-bold text-brand-muted mb-1 uppercase tracking-wider">
+                            First Name
+                          </label>
                           <input
                             type="text"
                             value={editForm.first_name}
-                            onChange={(e) => setEditForm({ ...editForm, first_name: e.target.value })}
+                            onChange={(e) =>
+                              setEditForm({
+                                ...editForm,
+                                first_name: e.target.value,
+                              })
+                            }
                             className="w-full bg-brand-surface border border-transparent rounded-lg px-3 py-2 text-sm text-brand-navy focus:outline-none focus:ring-1 focus:ring-brand-indigo"
                           />
                         </div>
                         <div>
-                          <label className="block text-xs font-bold text-brand-muted mb-1 uppercase tracking-wider">Last Name</label>
+                          <label className="block text-xs font-bold text-brand-muted mb-1 uppercase tracking-wider">
+                            Last Name
+                          </label>
                           <input
                             type="text"
                             value={editForm.last_name}
-                            onChange={(e) => setEditForm({ ...editForm, last_name: e.target.value })}
+                            onChange={(e) =>
+                              setEditForm({
+                                ...editForm,
+                                last_name: e.target.value,
+                              })
+                            }
                             className="w-full bg-brand-surface border border-transparent rounded-lg px-3 py-2 text-sm text-brand-navy focus:outline-none focus:ring-1 focus:ring-brand-indigo"
                           />
                         </div>
@@ -377,19 +408,30 @@ export default function PatientDashboard() {
 
                       <div className="grid grid-cols-2 gap-4">
                         <div>
-                          <label className="block text-xs font-bold text-brand-muted mb-1 uppercase tracking-wider">Age</label>
+                          <label className="block text-xs font-bold text-brand-muted mb-1 uppercase tracking-wider">
+                            Age
+                          </label>
                           <input
                             type="number"
                             value={editForm.age}
-                            onChange={(e) => setEditForm({ ...editForm, age: e.target.value })}
+                            onChange={(e) =>
+                              setEditForm({ ...editForm, age: e.target.value })
+                            }
                             className="w-full bg-brand-surface border border-transparent rounded-lg px-3 py-2 text-sm text-brand-navy focus:outline-none focus:ring-1 focus:ring-brand-indigo"
                           />
                         </div>
                         <div>
-                          <label className="block text-xs font-bold text-brand-muted mb-1 uppercase tracking-wider">Gender</label>
+                          <label className="block text-xs font-bold text-brand-muted mb-1 uppercase tracking-wider">
+                            Gender
+                          </label>
                           <select
                             value={editForm.gender}
-                            onChange={(e) => setEditForm({ ...editForm, gender: e.target.value })}
+                            onChange={(e) =>
+                              setEditForm({
+                                ...editForm,
+                                gender: e.target.value,
+                              })
+                            }
                             className="w-full bg-brand-surface border border-transparent rounded-lg px-3 py-2 text-sm text-brand-navy focus:outline-none focus:ring-1 focus:ring-brand-indigo"
                           >
                             <option value="">Select</option>
@@ -402,32 +444,53 @@ export default function PatientDashboard() {
 
                       <div className="grid grid-cols-2 gap-4">
                         <div>
-                          <label className="block text-xs font-bold text-brand-muted mb-1 uppercase tracking-wider">Blood Group</label>
+                          <label className="block text-xs font-bold text-brand-muted mb-1 uppercase tracking-wider">
+                            Blood Group
+                          </label>
                           <input
                             type="text"
                             placeholder="e.g. A+"
                             value={editForm.blood_group}
-                            onChange={(e) => setEditForm({ ...editForm, blood_group: e.target.value })}
+                            onChange={(e) =>
+                              setEditForm({
+                                ...editForm,
+                                blood_group: e.target.value,
+                              })
+                            }
                             className="w-full bg-brand-surface border border-transparent rounded-lg px-3 py-2 text-sm text-brand-navy focus:outline-none focus:ring-1 focus:ring-brand-indigo"
                           />
                         </div>
                         <div>
-                          <label className="block text-xs font-bold text-brand-muted mb-1 uppercase tracking-wider">Contact</label>
+                          <label className="block text-xs font-bold text-brand-muted mb-1 uppercase tracking-wider">
+                            Contact
+                          </label>
                           <input
                             type="text"
                             value={editForm.contact_number}
-                            onChange={(e) => setEditForm({ ...editForm, contact_number: e.target.value })}
+                            onChange={(e) =>
+                              setEditForm({
+                                ...editForm,
+                                contact_number: e.target.value,
+                              })
+                            }
                             className="w-full bg-brand-surface border border-transparent rounded-lg px-3 py-2 text-sm text-brand-navy focus:outline-none focus:ring-1 focus:ring-brand-indigo"
                           />
                         </div>
                       </div>
 
                       <div>
-                        <label className="block text-xs font-bold text-brand-muted mb-1 uppercase tracking-wider">Address</label>
+                        <label className="block text-xs font-bold text-brand-muted mb-1 uppercase tracking-wider">
+                          Address
+                        </label>
                         <textarea
                           rows={2}
                           value={editForm.address}
-                          onChange={(e) => setEditForm({ ...editForm, address: e.target.value })}
+                          onChange={(e) =>
+                            setEditForm({
+                              ...editForm,
+                              address: e.target.value,
+                            })
+                          }
                           className="w-full bg-brand-surface border border-transparent rounded-lg px-3 py-2 text-sm text-brand-navy focus:outline-none focus:ring-1 focus:ring-brand-indigo resize-none"
                         />
                       </div>
@@ -454,7 +517,11 @@ export default function PatientDashboard() {
                       <div className="flex items-center space-x-4">
                         <div className="w-12 h-12 rounded-full bg-brand-indigo/10 flex items-center justify-center border border-brand-indigo/20">
                           <span className="font-bold text-brand-indigo text-lg">
-                            {profile?.first_name ? profile.first_name[0].toUpperCase() : (profile?.email ? profile.email[0].toUpperCase() : "P")}
+                            {profile?.first_name
+                              ? profile.first_name[0].toUpperCase()
+                              : profile?.email
+                                ? profile.email[0].toUpperCase()
+                                : "P"}
                           </span>
                         </div>
                         <div>
@@ -463,30 +530,54 @@ export default function PatientDashboard() {
                               ? `${profile.first_name} ${profile.last_name}`.trim()
                               : "No Name Registered"}
                           </h4>
-                          <p className="text-xs text-brand-muted font-medium">{profile?.email}</p>
+                          <p className="text-xs text-brand-muted font-medium">
+                            {profile?.email}
+                          </p>
                         </div>
                       </div>
 
                       <div className="border-t border-brand-border/60 pt-4 grid grid-cols-2 gap-y-3 gap-x-4 text-sm">
                         <div>
-                          <span className="block text-xs font-semibold text-brand-muted uppercase tracking-wider">Age</span>
-                          <span className="font-semibold text-brand-navy">{profile?.age !== null ? `${profile?.age} Years` : "—"}</span>
+                          <span className="block text-xs font-semibold text-brand-muted uppercase tracking-wider">
+                            Age
+                          </span>
+                          <span className="font-semibold text-brand-navy">
+                            {profile?.age !== null
+                              ? `${profile?.age} Years`
+                              : "—"}
+                          </span>
                         </div>
                         <div>
-                          <span className="block text-xs font-semibold text-brand-muted uppercase tracking-wider">Gender</span>
-                          <span className="font-semibold text-brand-navy capitalize">{profile?.gender || "—"}</span>
+                          <span className="block text-xs font-semibold text-brand-muted uppercase tracking-wider">
+                            Gender
+                          </span>
+                          <span className="font-semibold text-brand-navy capitalize">
+                            {profile?.gender || "—"}
+                          </span>
                         </div>
                         <div>
-                          <span className="block text-xs font-semibold text-brand-muted uppercase tracking-wider">Blood Group</span>
-                          <span className="font-semibold text-brand-navy">{profile?.blood_group || "—"}</span>
+                          <span className="block text-xs font-semibold text-brand-muted uppercase tracking-wider">
+                            Blood Group
+                          </span>
+                          <span className="font-semibold text-brand-navy">
+                            {profile?.blood_group || "—"}
+                          </span>
                         </div>
                         <div>
-                          <span className="block text-xs font-semibold text-brand-muted uppercase tracking-wider">Contact</span>
-                          <span className="font-semibold text-brand-navy">{profile?.contact_number || "—"}</span>
+                          <span className="block text-xs font-semibold text-brand-muted uppercase tracking-wider">
+                            Contact
+                          </span>
+                          <span className="font-semibold text-brand-navy">
+                            {profile?.contact_number || "—"}
+                          </span>
                         </div>
                         <div className="col-span-2">
-                          <span className="block text-xs font-semibold text-brand-muted uppercase tracking-wider">Address</span>
-                          <span className="font-semibold text-brand-navy break-words">{profile?.address || "—"}</span>
+                          <span className="block text-xs font-semibold text-brand-muted uppercase tracking-wider">
+                            Address
+                          </span>
+                          <span className="font-semibold text-brand-navy break-words">
+                            {profile?.address || "—"}
+                          </span>
                         </div>
                       </div>
                     </div>
@@ -501,7 +592,9 @@ export default function PatientDashboard() {
                       <span>My Prescriptions</span>
                     </h3>
                     <button
-                      onClick={() => router.push("/patient-dashboard/prescriptions")}
+                      onClick={() =>
+                        router.push("/patient-dashboard/prescriptions")
+                      }
                       className="text-brand-indigo hover:text-brand-lavender text-xs font-bold"
                     >
                       View All
@@ -510,23 +603,37 @@ export default function PatientDashboard() {
 
                   {prescriptions.length === 0 ? (
                     <div className="text-center py-6 bg-brand-surface/30 rounded-xl border border-dashed border-brand-border">
-                      <p className="text-brand-muted text-sm font-medium">No prescriptions found.</p>
+                      <p className="text-brand-muted text-sm font-medium">
+                        No prescriptions found.
+                      </p>
                     </div>
                   ) : (
                     <div className="space-y-4">
                       {prescriptions.slice(0, 2).map((pres) => (
-                        <div key={pres.id} className="p-4 bg-brand-surface/40 border border-brand-border rounded-xl">
+                        <div
+                          key={pres.id}
+                          className="p-4 bg-brand-surface/40 border border-brand-border rounded-xl"
+                        >
                           <div className="flex justify-between items-start">
-                            <h4 className="font-bold text-brand-navy text-sm">{pres.medication}</h4>
+                            <h4 className="font-bold text-brand-navy text-sm">
+                              {pres.medication}
+                            </h4>
                             <span className="text-[10px] text-brand-muted font-bold">
                               {new Date(pres.date_issued).toLocaleDateString()}
                             </span>
                           </div>
-                          <p className="text-xs text-brand-muted font-semibold mt-1">Dosage: {pres.dosage}</p>
-                          <p className="text-xs text-brand-navy mt-2 italic">"{pres.instructions}"</p>
+                          <p className="text-xs text-brand-muted font-semibold mt-1">
+                            Dosage: {pres.dosage}
+                          </p>
+                          <p className="text-xs text-brand-navy mt-2 italic">
+                            "{pres.instructions}"
+                          </p>
                           {pres.doctor_notes && (
                             <div className="mt-2 pt-2 border-t border-brand-border/40 text-[11px] text-brand-muted">
-                              <span className="font-bold text-brand-navy">Doctor Notes:</span> {pres.doctor_notes}
+                              <span className="font-bold text-brand-navy">
+                                Doctor Notes:
+                              </span>{" "}
+                              {pres.doctor_notes}
                             </div>
                           )}
                         </div>
@@ -546,7 +653,9 @@ export default function PatientDashboard() {
 
                   {history.length === 0 ? (
                     <div className="text-center py-6 bg-brand-surface/30 rounded-xl border border-dashed border-brand-border">
-                      <p className="text-brand-muted text-sm font-medium">No medical records uploaded.</p>
+                      <p className="text-brand-muted text-sm font-medium">
+                        No medical records uploaded.
+                      </p>
                     </div>
                   ) : (
                     <div className="space-y-4">
@@ -558,11 +667,17 @@ export default function PatientDashboard() {
                           </div>
                           <div className="flex-1 pb-3">
                             <span className="text-[10px] font-bold text-brand-muted block uppercase">
-                              {new Date(hist.diagnosis_date).toLocaleDateString()}
+                              {new Date(
+                                hist.diagnosis_date,
+                              ).toLocaleDateString()}
                             </span>
-                            <span className="font-bold text-brand-navy block mt-0.5">{hist.condition}</span>
+                            <span className="font-bold text-brand-navy block mt-0.5">
+                              {hist.condition}
+                            </span>
                             {hist.treatment && (
-                              <span className="text-xs text-brand-muted block font-medium">Treatment: {hist.treatment}</span>
+                              <span className="text-xs text-brand-muted block font-medium">
+                                Treatment: {hist.treatment}
+                              </span>
                             )}
                             {hist.notes && (
                               <p className="text-xs text-brand-navy bg-brand-surface/40 rounded px-2.5 py-1 mt-1 text-[11px]">
@@ -579,7 +694,6 @@ export default function PatientDashboard() {
 
               {/* Middle and Right Column: Scan History & Hospital Recommendations */}
               <div className="lg:col-span-2 space-y-8">
-                
                 {/* My Scan Results */}
                 <div className="bg-brand-white rounded-2xl border border-brand-border shadow-soft p-6">
                   <div className="flex justify-between items-center mb-6">
@@ -600,15 +714,21 @@ export default function PatientDashboard() {
                       <div className="p-3 bg-brand-indigo/10 rounded-full">
                         <Activity className="w-6 h-6 text-brand-indigo" />
                       </div>
-                      <p className="text-brand-navy font-semibold text-sm">No chest X-ray scans recorded</p>
+                      <p className="text-brand-navy font-semibold text-sm">
+                        No chest X-ray scans recorded
+                      </p>
                       <p className="text-brand-muted text-xs max-w-sm">
-                        Only scans conducted by your clinic doctor and analyzed by the Pneumonix AI model will appear here.
+                        Only scans conducted by your clinic doctor and analyzed
+                        by the Pneumonix AI model will appear here.
                       </p>
                     </div>
                   ) : (
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                       {scans.slice(0, 2).map((scan) => (
-                        <div key={scan.id} className="border border-brand-border rounded-xl overflow-hidden hover:shadow-md transition-shadow bg-brand-white flex flex-col">
+                        <div
+                          key={scan.id}
+                          className="border border-brand-border rounded-xl overflow-hidden hover:shadow-md transition-shadow bg-brand-white flex flex-col"
+                        >
                           <div className="h-44 bg-slate-900 flex items-center justify-center overflow-hidden relative group">
                             {scan.image_url ? (
                               <img
@@ -617,12 +737,18 @@ export default function PatientDashboard() {
                                 className="h-full w-full object-cover group-hover:scale-105 transition-transform"
                               />
                             ) : (
-                              <div className="text-brand-muted text-xs font-semibold">Image file missing</div>
+                              <div className="text-brand-muted text-xs font-semibold">
+                                Image file missing
+                              </div>
                             )}
                             <div className="absolute top-3 right-3">
-                              <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-bold border ${
-                                scan.result === "Normal" ? "bg-emerald-500/10 text-emerald-500 border-emerald-500/20" : "bg-red-500/10 text-red-500 border-red-500/20"
-                              }`}>
+                              <span
+                                className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-bold border ${
+                                  scan.result === "Normal"
+                                    ? "bg-emerald-500/10 text-emerald-500 border-emerald-500/20"
+                                    : "bg-red-500/10 text-red-500 border-red-500/20"
+                                }`}
+                              >
                                 {scan.result}
                               </span>
                             </div>
@@ -631,21 +757,29 @@ export default function PatientDashboard() {
                             <div>
                               <div className="flex justify-between items-center">
                                 <span className="text-[10px] font-bold text-brand-muted uppercase">
-                                  {new Date(scan.created_at).toLocaleDateString("en-US", {
-                                    year: "numeric",
-                                    month: "short",
-                                    day: "numeric",
-                                    hour: "2-digit",
-                                    minute: "2-digit"
-                                  })}
+                                  {new Date(scan.created_at).toLocaleDateString(
+                                    "en-US",
+                                    {
+                                      year: "numeric",
+                                      month: "short",
+                                      day: "numeric",
+                                      hour: "2-digit",
+                                      minute: "2-digit",
+                                    },
+                                  )}
                                 </span>
                                 <span className="text-xs font-bold text-brand-navy">
-                                  Confidence: {(scan.confidence * 100).toFixed(1)}%
+                                  Confidence:{" "}
+                                  {(scan.confidence * 100).toFixed(1)}%
                                 </span>
                               </div>
                               <p className="text-xs text-brand-muted font-medium mt-3 border-t border-brand-border/40 pt-2 break-words">
-                                <span className="font-bold text-brand-navy block mb-0.5">Doctor Remarks:</span>
-                                {scan.doctor_remarks ? `"${scan.doctor_remarks}"` : "Awaiting clinician clinical notes."}
+                                <span className="font-bold text-brand-navy block mb-0.5">
+                                  Doctor Remarks:
+                                </span>
+                                {scan.doctor_remarks
+                                  ? `"${scan.doctor_remarks}"`
+                                  : "Awaiting clinician clinical notes."}
                               </p>
                             </div>
                           </div>
@@ -663,7 +797,9 @@ export default function PatientDashboard() {
                       <span>My Appointments & Notifications</span>
                     </h3>
                     <button
-                      onClick={() => router.push("/patient-dashboard/appointments")}
+                      onClick={() =>
+                        router.push("/patient-dashboard/appointments")
+                      }
                       className="text-brand-indigo hover:text-brand-lavender text-xs font-bold"
                     >
                       Manage Appointments
@@ -672,7 +808,9 @@ export default function PatientDashboard() {
 
                   {appointments.length === 0 ? (
                     <div className="text-center py-6 bg-brand-surface/30 rounded-xl border border-dashed border-brand-border">
-                      <p className="text-brand-muted text-sm font-medium">No appointments booked yet.</p>
+                      <p className="text-brand-muted text-sm font-medium">
+                        No appointments booked yet.
+                      </p>
                     </div>
                   ) : (
                     <div className="space-y-4">
@@ -683,34 +821,53 @@ export default function PatientDashboard() {
                         >
                           <div className="space-y-1">
                             <div className="flex items-center space-x-3">
-                              <span className={`px-2.5 py-0.5 rounded-full text-xs font-bold border ${getStatusBadge(app.status)}`}>
+                              <span
+                                className={`px-2.5 py-0.5 rounded-full text-xs font-bold border ${getStatusBadge(app.status)}`}
+                              >
                                 {app.status}
                               </span>
                               <span className="text-xs text-brand-muted font-semibold">
-                                Request Date: {app.requested_date} @ {app.requested_time}
+                                Request Date: {app.requested_date} @{" "}
+                                {app.requested_time}
                               </span>
                             </div>
                             <p className="text-xs font-bold text-brand-navy mt-1">
                               Reason: {app.reason}
                             </p>
                             <p className="text-xs text-brand-muted">
-                              Notification: <span className="font-semibold text-brand-navy">{getStatusMessage(app.status)}</span>
+                              Notification:{" "}
+                              <span className="font-semibold text-brand-navy">
+                                {getStatusMessage(app.status)}
+                              </span>
                             </p>
                             {app.status === "Accepted" && (
                               <div className="bg-emerald-50 text-emerald-800 rounded-lg p-2.5 text-xs font-semibold mt-2 border border-emerald-100 flex items-center space-x-2">
                                 <CheckCircle className="w-4 h-4 text-emerald-600" />
-                                <span>Confirmed Schedule: <strong className="text-brand-navy">{app.appointment_date} at {app.appointment_time}</strong></span>
+                                <span>
+                                  Confirmed Schedule:{" "}
+                                  <strong className="text-brand-navy">
+                                    {app.appointment_date} at{" "}
+                                    {app.appointment_time}
+                                  </strong>
+                                </span>
                               </div>
                             )}
                             {app.doctor_notes && (
                               <p className="text-[11px] text-brand-muted mt-1 bg-brand-surface/30 px-2 py-1 rounded">
-                                <strong className="text-brand-navy font-bold">Doctor Notes:</strong> "{app.doctor_notes}"
+                                <strong className="text-brand-navy font-bold">
+                                  Doctor Notes:
+                                </strong>{" "}
+                                "{app.doctor_notes}"
                               </p>
                             )}
                           </div>
                           <div>
-                            <span className="text-[10px] font-bold text-brand-muted uppercase block text-right">Assigned Doctor</span>
-                            <span className="text-xs font-bold text-brand-navy block text-right">Dr. Maharjan</span>
+                            <span className="text-[10px] font-bold text-brand-muted uppercase block text-right">
+                              Assigned Doctor
+                            </span>
+                            <span className="text-xs font-bold text-brand-navy block text-right">
+                              Dr. Maharjan
+                            </span>
                           </div>
                         </div>
                       ))}
@@ -727,7 +884,8 @@ export default function PatientDashboard() {
                         <span>Nearby Pneumonia Checkup Centers</span>
                       </h3>
                       <p className="text-xs text-brand-muted font-medium mt-0.5">
-                        Clinical partners equipped with radiology scanning units.
+                        Clinical partners equipped with radiology scanning
+                        units.
                       </p>
                     </div>
                     {/* Location-based search input */}
@@ -751,17 +909,27 @@ export default function PatientDashboard() {
                       >
                         <div>
                           <div className="flex justify-between items-start mb-2">
-                            <span className={`inline-flex items-center px-2 py-0.5 rounded text-[10px] font-extrabold border ${
-                              hospital.open ? "bg-emerald-50 text-emerald-700 border-emerald-200" : "bg-rose-50 text-rose-700 border-rose-200"
-                            }`}>
+                            <span
+                              className={`inline-flex items-center px-2 py-0.5 rounded text-[10px] font-extrabold border ${
+                                hospital.open
+                                  ? "bg-emerald-50 text-emerald-700 border-emerald-200"
+                                  : "bg-rose-50 text-rose-700 border-rose-200"
+                              }`}
+                            >
                               {hospital.status}
                             </span>
-                            <span className="text-xs font-bold text-brand-indigo">{hospital.distance}</span>
+                            <span className="text-xs font-bold text-brand-indigo">
+                              {hospital.distance}
+                            </span>
                           </div>
-                          <h4 className="font-bold text-brand-navy text-sm mb-1">{hospital.name}</h4>
+                          <h4 className="font-bold text-brand-navy text-sm mb-1">
+                            {hospital.name}
+                          </h4>
                           <p className="text-xs text-brand-muted font-medium flex items-start space-x-1.5 mb-2">
                             <MapPin className="w-3.5 h-3.5 text-brand-muted flex-shrink-0 mt-0.5" />
-                            <span className="break-words">{hospital.address}</span>
+                            <span className="break-words">
+                              {hospital.address}
+                            </span>
                           </p>
                           <p className="text-[11px] text-brand-muted font-bold flex items-center space-x-1.5 mb-3">
                             <Phone className="w-3 h-3 text-brand-muted" />
@@ -772,7 +940,11 @@ export default function PatientDashboard() {
                           </p>
                         </div>
                         <button
-                          onClick={() => router.push(`/patient-dashboard/appointments?ref=${encodeURIComponent(hospital.name)}`)}
+                          onClick={() =>
+                            router.push(
+                              `/patient-dashboard/appointments?ref=${encodeURIComponent(hospital.name)}`,
+                            )
+                          }
                           className="w-full bg-brand-indigo hover:bg-[#2a2853] text-white text-xs font-bold py-2 rounded-lg flex items-center justify-center space-x-1 transition-colors mt-auto active:scale-95"
                         >
                           <span>Request Appointment</span>
@@ -782,14 +954,14 @@ export default function PatientDashboard() {
                     ))}
                     {filteredHospitals.length === 0 && (
                       <div className="col-span-2 text-center py-6">
-                        <p className="text-brand-muted text-xs font-semibold">No clinics match your query.</p>
+                        <p className="text-brand-muted text-xs font-semibold">
+                          No clinics match your query.
+                        </p>
                       </div>
                     )}
                   </div>
                 </div>
-
               </div>
-
             </div>
           )}
 
@@ -800,15 +972,20 @@ export default function PatientDashboard() {
                 <ShieldCheck className="w-5 h-5 text-brand-teal" />
               </div>
               <div>
-                <h4 className="font-bold text-brand-navy text-sm">HIPAA Secure Portal</h4>
+                <h4 className="font-bold text-brand-navy text-sm">
+                  HIPAA Secure Portal
+                </h4>
                 <p className="text-xs text-brand-muted font-semibold">
-                  All clinical scans and radiograph files are protected by AES-256 state database encryption.
+                  All clinical scans and radiograph files are protected by
+                  AES-256 state database encryption.
                 </p>
               </div>
             </div>
             <div className="text-xs text-brand-muted font-semibold flex items-center space-x-1">
               <Stethoscope className="w-4 h-4 text-brand-indigo" />
-              <span>Assigned Clinic Practitioner: <strong>Dr. Maharjan</strong></span>
+              <span>
+                Assigned Clinic Practitioner: <strong>Dr. Maharjan</strong>
+              </span>
             </div>
           </div>
         </main>

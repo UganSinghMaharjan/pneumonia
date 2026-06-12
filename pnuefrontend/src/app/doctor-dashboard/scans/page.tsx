@@ -17,7 +17,7 @@ import {
   Edit2,
   Check,
   X,
-  FileImage
+  FileImage,
 } from "lucide-react";
 
 interface ScanRecord {
@@ -40,7 +40,9 @@ export default function DoctorScansPage() {
 
   const [scans, setScans] = useState<ScanRecord[]>([]);
   const [searchQuery, setSearchQuery] = useState("");
-  const [filterResult, setFilterResult] = useState<"All" | "Normal" | "Pneumonia">("All");
+  const [filterResult, setFilterResult] = useState<
+    "All" | "Normal" | "Pneumonia"
+  >("All");
 
   // Edit Remarks State
   const [editingScanId, setEditingScanId] = useState<number | null>(null);
@@ -70,7 +72,7 @@ export default function DoctorScansPage() {
     setLoading(true);
     try {
       const response = await axios.get("http://localhost:8000/api/scans/", {
-        headers: { Authorization: `Token ${authToken}` }
+        headers: { Authorization: `Token ${authToken}` },
       });
       setScans(response.data);
     } catch (err) {
@@ -88,12 +90,14 @@ export default function DoctorScansPage() {
       await axios.patch(
         `http://localhost:8000/api/scans/${scanId}/`,
         { doctor_remarks: editRemarksText },
-        { headers: { Authorization: `Token ${token}` } }
+        { headers: { Authorization: `Token ${token}` } },
       );
-      
+
       // Update local state
       setScans((prev) =>
-        prev.map((s) => (s.id === scanId ? { ...s, doctor_remarks: editRemarksText } : s))
+        prev.map((s) =>
+          s.id === scanId ? { ...s, doctor_remarks: editRemarksText } : s,
+        ),
       );
       setEditingScanId(null);
       setEditRemarksText("");
@@ -126,8 +130,9 @@ export default function DoctorScansPage() {
       scan.patient_name.toLowerCase().includes(searchQuery.toLowerCase()) ||
       scan.patient_email.toLowerCase().includes(searchQuery.toLowerCase()) ||
       scan.result.toLowerCase().includes(searchQuery.toLowerCase());
-    
-    const matchesFilter = filterResult === "All" || scan.result === filterResult;
+
+    const matchesFilter =
+      filterResult === "All" || scan.result === filterResult;
 
     return matchesSearch && matchesFilter;
   });
@@ -142,9 +147,12 @@ export default function DoctorScansPage() {
         <main className="flex-1 overflow-y-auto p-8 space-y-8">
           <div className="flex flex-col md:flex-row md:items-center md:justify-between space-y-4 md:space-y-0">
             <div>
-              <h1 className="text-3xl font-extrabold text-brand-navy mb-1">Clinic Scan Catalogue</h1>
+              <h1 className="text-3xl font-extrabold text-brand-navy mb-1">
+                Clinic Scan Catalogue
+              </h1>
               <p className="text-brand-muted font-medium">
-                Browse and update diagnostic remarks for patient chest radiographs.
+                Browse and update diagnostic remarks for patient chest
+                radiographs.
               </p>
             </div>
 
@@ -186,9 +194,12 @@ export default function DoctorScansPage() {
           ) : filteredScans.length === 0 ? (
             <div className="bg-brand-white border border-brand-border rounded-2xl p-12 text-center max-w-xl mx-auto flex flex-col items-center">
               <FileImage className="w-8 h-8 text-brand-muted mb-3" />
-              <h4 className="font-bold text-brand-navy text-sm">No scans match your criteria</h4>
+              <h4 className="font-bold text-brand-navy text-sm">
+                No scans match your criteria
+              </h4>
               <p className="text-xs text-brand-muted mt-1">
-                Perform a checkup analysis on the main Dashboard to generate scans in the database.
+                Perform a checkup analysis on the main Dashboard to generate
+                scans in the database.
               </p>
             </div>
           ) : (
@@ -206,14 +217,18 @@ export default function DoctorScansPage() {
                         className="h-full w-full object-cover group-hover:scale-105 transition-transform"
                       />
                     ) : (
-                      <div className="text-brand-muted text-xs font-semibold">No image preview</div>
+                      <div className="text-brand-muted text-xs font-semibold">
+                        No image preview
+                      </div>
                     )}
                     <div className="absolute top-4 right-4">
-                      <span className={`inline-flex items-center px-3 py-1 rounded-full text-xs font-bold border shadow-sm ${
-                        scan.result === "Normal"
-                          ? "bg-emerald-500/15 text-emerald-500 border-emerald-500/30"
-                          : "bg-rose-500/15 text-rose-500 border-rose-500/30"
-                      }`}>
+                      <span
+                        className={`inline-flex items-center px-3 py-1 rounded-full text-xs font-bold border shadow-sm ${
+                          scan.result === "Normal"
+                            ? "bg-emerald-500/15 text-emerald-500 border-emerald-500/30"
+                            : "bg-rose-500/15 text-rose-500 border-rose-500/30"
+                        }`}
+                      >
                         {scan.result.toUpperCase()}
                       </span>
                     </div>
@@ -224,17 +239,23 @@ export default function DoctorScansPage() {
                       <div className="flex justify-between items-center">
                         <span className="text-[10px] font-bold text-brand-muted uppercase flex items-center space-x-1">
                           <Calendar className="w-3.5 h-3.5" />
-                          <span>{new Date(scan.created_at).toLocaleDateString()}</span>
+                          <span>
+                            {new Date(scan.created_at).toLocaleDateString()}
+                          </span>
                         </span>
                         <span className="text-xs font-bold text-brand-navy flex items-center space-x-0.5">
                           <Percent className="w-3.5 h-3.5" />
-                          <span>{(scan.confidence * 100).toFixed(1)}% AI confidence</span>
+                          <span>
+                            {(scan.confidence * 100).toFixed(1)}% AI confidence
+                          </span>
                         </span>
                       </div>
 
                       <div className="text-xs text-brand-navy font-bold flex items-center space-x-1">
                         <span>Patient: {scan.patient_name}</span>
-                        <span className="text-brand-muted text-[10px] font-medium">({scan.patient_email})</span>
+                        <span className="text-brand-muted text-[10px] font-medium">
+                          ({scan.patient_email})
+                        </span>
                       </div>
                     </div>
 
@@ -295,7 +316,9 @@ export default function DoctorScansPage() {
                         </div>
                       ) : (
                         <p className="text-xs text-brand-navy bg-brand-surface/40 rounded-lg p-3 italic break-words leading-relaxed">
-                          {scan.doctor_remarks ? `"${scan.doctor_remarks}"` : "Remarks pending clinician clinical notes."}
+                          {scan.doctor_remarks
+                            ? `"${scan.doctor_remarks}"`
+                            : "Remarks pending clinician clinical notes."}
                         </p>
                       )}
                     </div>

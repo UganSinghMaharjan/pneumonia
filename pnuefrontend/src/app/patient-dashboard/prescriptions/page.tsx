@@ -11,7 +11,7 @@ import {
   Loader2,
   Bookmark,
   Activity,
-  Heart
+  Heart,
 } from "lucide-react";
 
 interface PrescriptionRecord {
@@ -52,9 +52,12 @@ export default function PatientPrescriptionsPage() {
   const fetchPrescriptions = async (authToken: string) => {
     setLoading(true);
     try {
-      const response = await axios.get("http://localhost:8000/api/prescriptions/", {
-        headers: { Authorization: `Token ${authToken}` }
-      });
+      const response = await axios.get(
+        "http://localhost:8000/api/prescriptions/",
+        {
+          headers: { Authorization: `Token ${authToken}` },
+        },
+      );
       setPrescriptions(response.data);
     } catch (err) {
       console.error("Failed to fetch prescriptions", err);
@@ -87,9 +90,12 @@ export default function PatientPrescriptionsPage() {
 
         <main className="flex-1 overflow-y-auto p-8 space-y-8">
           <div>
-            <h1 className="text-3xl font-extrabold text-brand-navy mb-1">My Medical Prescriptions</h1>
+            <h1 className="text-3xl font-extrabold text-brand-navy mb-1">
+              My Medical Prescriptions
+            </h1>
             <p className="text-brand-muted font-medium">
-              View pharmaceutical orders and clinician guidelines issued for your recovery.
+              View pharmaceutical orders and clinician guidelines issued for
+              your recovery.
             </p>
           </div>
 
@@ -102,9 +108,12 @@ export default function PatientPrescriptionsPage() {
               <div className="p-4 bg-brand-indigo/10 rounded-full mb-4">
                 <FileText className="w-8 h-8 text-brand-indigo" />
               </div>
-              <h3 className="text-lg font-bold text-brand-navy mb-2">No prescriptions issued yet</h3>
+              <h3 className="text-lg font-bold text-brand-navy mb-2">
+                No prescriptions issued yet
+              </h3>
               <p className="text-sm text-brand-muted mb-4 max-w-md">
-                All clinical prescriptions issued by your attending physician will appear in this log.
+                All clinical prescriptions issued by your attending physician
+                will appear in this log.
               </p>
             </div>
           ) : (
@@ -134,12 +143,16 @@ export default function PatientPrescriptionsPage() {
                         <Bookmark className="w-4 h-4 text-brand-indigo" />
                         <span>Attending Guidelines</span>
                       </span>
-                      <p className="text-brand-navy italic">"{pres.instructions}"</p>
+                      <p className="text-brand-navy italic">
+                        "{pres.instructions}"
+                      </p>
                     </div>
 
                     {pres.doctor_notes && (
                       <div className="text-xs text-brand-muted bg-brand-indigo/5 p-3 rounded-lg border border-brand-indigo/10">
-                        <span className="font-bold text-brand-navy block mb-0.5">Doctor Notes:</span>
+                        <span className="font-bold text-brand-navy block mb-0.5">
+                          Doctor Notes:
+                        </span>
                         <span>{pres.doctor_notes}</span>
                       </div>
                     )}
@@ -147,13 +160,20 @@ export default function PatientPrescriptionsPage() {
 
                   <div className="text-left md:text-right flex flex-col justify-between items-start md:items-end border-t md:border-t-0 border-brand-border/40 pt-4 md:pt-0">
                     <div className="space-y-0.5">
-                      <span className="text-[10px] font-bold text-brand-muted uppercase block">Attending Practitioner</span>
-                      <span className="text-xs font-bold text-brand-navy block">Dr. Maharjan</span>
+                      <span className="text-[10px] font-bold text-brand-muted uppercase block">
+                        Attending Practitioner
+                      </span>
+                      <span className="text-xs font-bold text-brand-navy block">
+                        Dr. Maharjan
+                      </span>
                     </div>
 
                     <div className="text-xs text-brand-muted font-semibold flex items-center space-x-1 mt-4 md:mt-0">
                       <Calendar className="w-4 h-4 text-brand-muted" />
-                      <span>Issued: {new Date(pres.date_issued).toLocaleDateString()}</span>
+                      <span>
+                        Issued:{" "}
+                        {new Date(pres.date_issued).toLocaleDateString()}
+                      </span>
                     </div>
                   </div>
                 </div>

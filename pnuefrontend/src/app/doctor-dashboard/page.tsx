@@ -17,7 +17,7 @@ import {
   User,
   ExternalLink,
   ShieldCheck,
-  FileText
+  FileText,
 } from "lucide-react";
 
 interface PatientRecord {
@@ -83,11 +83,16 @@ export default function DoctorDashboard() {
     const headers = { Authorization: `Token ${authToken}` };
     try {
       // Fetch patients
-      const patientsRes = await axios.get("http://localhost:8000/api/patients/", { headers });
+      const patientsRes = await axios.get(
+        "http://localhost:8000/api/patients/",
+        { headers },
+      );
       setPatients(patientsRes.data);
 
       // Fetch all scans
-      const scansRes = await axios.get("http://localhost:8000/api/scans/", { headers });
+      const scansRes = await axios.get("http://localhost:8000/api/scans/", {
+        headers,
+      });
       setRecentScans(scansRes.data);
     } catch (err: any) {
       console.error("Failed to load doctor dashboard data", err);
@@ -151,9 +156,9 @@ export default function DoctorDashboard() {
           },
         },
       );
-      
+
       setResult(response.data);
-      
+
       // Reset upload inputs except remarks
       setImage(null);
       setPreview(null);
@@ -194,14 +199,14 @@ export default function DoctorDashboard() {
 
   // Compute Live Statistics
   const today = new Date().toDateString();
-  const totalScansToday = recentScans.filter((scan) =>
-    new Date(scan.created_at).toDateString() === today
+  const totalScansToday = recentScans.filter(
+    (scan) => new Date(scan.created_at).toDateString() === today,
   ).length;
   const normalResults = recentScans.filter(
-    (scan) => scan.result === "Normal"
+    (scan) => scan.result === "Normal",
   ).length;
   const pneumoniaDetected = recentScans.filter(
-    (scan) => scan.result === "Pneumonia"
+    (scan) => scan.result === "Pneumonia",
   ).length;
 
   return (
@@ -218,7 +223,8 @@ export default function DoctorDashboard() {
               Doctor Administration Portal
             </h1>
             <p className="text-brand-muted font-medium">
-              Analyze chest X-rays, manage patient profiles, and view clinic-wide statistics.
+              Analyze chest X-rays, manage patient profiles, and view
+              clinic-wide statistics.
             </p>
           </div>
 
@@ -298,10 +304,14 @@ export default function DoctorDashboard() {
                           <select
                             required
                             value={selectedPatientId}
-                            onChange={(e) => setSelectedPatientId(e.target.value)}
+                            onChange={(e) =>
+                              setSelectedPatientId(e.target.value)
+                            }
                             className="w-full bg-brand-surface border border-transparent rounded-lg px-3.5 py-2.5 text-sm text-brand-navy font-semibold focus:outline-none focus:ring-1 focus:ring-brand-indigo"
                           >
-                            <option value="">-- Choose Patient Profile --</option>
+                            <option value="">
+                              -- Choose Patient Profile --
+                            </option>
                             {patients.map((p) => (
                               <option key={p.id} value={p.id}>
                                 {p.first_name || p.last_name
@@ -412,9 +422,12 @@ export default function DoctorDashboard() {
                         <div className="p-4 bg-brand-surface rounded-full mb-3">
                           <Activity className="w-8 h-8 text-brand-muted" />
                         </div>
-                        <p className="text-brand-navy font-bold text-sm">Awaiting Diagnostic Input</p>
+                        <p className="text-brand-navy font-bold text-sm">
+                          Awaiting Diagnostic Input
+                        </p>
                         <p className="text-brand-muted text-xs max-w-sm mt-1">
-                          Select a patient, drop a chest radiograph, and run analysis to query the neural network.
+                          Select a patient, drop a chest radiograph, and run
+                          analysis to query the neural network.
                         </p>
                       </div>
                     )}
@@ -508,8 +521,12 @@ export default function DoctorDashboard() {
                         </div>
 
                         <div className="p-4 bg-brand-surface/40 border border-brand-border/40 rounded-xl mt-4 text-xs font-semibold text-brand-navy">
-                          <span className="font-bold text-brand-muted uppercase block text-[10px] tracking-wider mb-1">Diagnosed Patient Profile</span>
-                          <span>Name: {result.patient_name} ({result.patient_email})</span>
+                          <span className="font-bold text-brand-muted uppercase block text-[10px] tracking-wider mb-1">
+                            Diagnosed Patient Profile
+                          </span>
+                          <span>
+                            Name: {result.patient_name} ({result.patient_email})
+                          </span>
                         </div>
                       </div>
                     )}
@@ -579,7 +596,10 @@ export default function DoctorDashboard() {
                       ))}
                       {recentScans.length === 0 && (
                         <tr>
-                          <td colSpan={6} className="text-center py-8 text-brand-muted font-semibold">
+                          <td
+                            colSpan={6}
+                            className="text-center py-8 text-brand-muted font-semibold"
+                          >
                             No scan records present in database.
                           </td>
                         </tr>
@@ -598,15 +618,20 @@ export default function DoctorDashboard() {
                 <ShieldCheck className="w-5 h-5 text-brand-teal" />
               </div>
               <div>
-                <h4 className="font-bold text-brand-navy text-sm">Clinician Dashboard Authenticated</h4>
+                <h4 className="font-bold text-brand-navy text-sm">
+                  Clinician Dashboard Authenticated
+                </h4>
                 <p className="text-xs text-brand-muted font-semibold">
-                  Access is regulated under HIPAA security protocols. All uploads log physician credential details.
+                  Access is regulated under HIPAA security protocols. All
+                  uploads log physician credential details.
                 </p>
               </div>
             </div>
             <div className="text-xs text-brand-muted font-semibold flex items-center space-x-1.5">
               <FileText className="w-4 h-4 text-brand-indigo" />
-              <span>Assigned Credentials: <strong>{username} (Doctor)</strong></span>
+              <span>
+                Assigned Credentials: <strong>{username} (Doctor)</strong>
+              </span>
             </div>
           </div>
         </main>

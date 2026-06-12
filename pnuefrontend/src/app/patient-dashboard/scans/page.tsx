@@ -12,7 +12,7 @@ import {
   FileImage,
   Percent,
   CheckCircle,
-  AlertCircle
+  AlertCircle,
 } from "lucide-react";
 
 interface ScanRecord {
@@ -54,7 +54,7 @@ export default function PatientScansPage() {
     setLoading(true);
     try {
       const response = await axios.get("http://localhost:8000/api/scans/", {
-        headers: { Authorization: `Token ${authToken}` }
+        headers: { Authorization: `Token ${authToken}` },
       });
       setScans(response.data);
     } catch (err) {
@@ -88,9 +88,12 @@ export default function PatientScansPage() {
 
         <main className="flex-1 overflow-y-auto p-8 space-y-8">
           <div>
-            <h1 className="text-3xl font-extrabold text-brand-navy mb-1">My Chest Scans & Radiographs</h1>
+            <h1 className="text-3xl font-extrabold text-brand-navy mb-1">
+              My Chest Scans & Radiographs
+            </h1>
             <p className="text-brand-muted font-medium">
-              View AI diagnostic predictions and clinician scan logs for your chest X-rays.
+              View AI diagnostic predictions and clinician scan logs for your
+              chest X-rays.
             </p>
           </div>
 
@@ -103,9 +106,12 @@ export default function PatientScansPage() {
               <div className="p-4 bg-brand-indigo/10 rounded-full mb-4">
                 <FileImage className="w-8 h-8 text-brand-indigo" />
               </div>
-              <h3 className="text-lg font-bold text-brand-navy mb-2">No chest X-rays recorded yet</h3>
+              <h3 className="text-lg font-bold text-brand-navy mb-2">
+                No chest X-rays recorded yet
+              </h3>
               <p className="text-sm text-brand-muted mb-4 max-w-md">
-                Chest X-ray records and neural net scan assessments are uploaded directly by your clinic doctor.
+                Chest X-ray records and neural net scan assessments are uploaded
+                directly by your clinic doctor.
               </p>
             </div>
           ) : (
@@ -123,14 +129,18 @@ export default function PatientScansPage() {
                         className="h-full w-full object-cover group-hover:scale-105 transition-transform"
                       />
                     ) : (
-                      <div className="text-brand-muted text-xs font-semibold">No image preview</div>
+                      <div className="text-brand-muted text-xs font-semibold">
+                        No image preview
+                      </div>
                     )}
                     <div className="absolute top-4 right-4">
-                      <span className={`inline-flex items-center px-3 py-1 rounded-full text-xs font-bold border shadow-sm ${
-                        scan.result === "Normal"
-                          ? "bg-emerald-500/15 text-emerald-500 border-emerald-500/30"
-                          : "bg-rose-500/15 text-rose-500 border-rose-500/30"
-                      }`}>
+                      <span
+                        className={`inline-flex items-center px-3 py-1 rounded-full text-xs font-bold border shadow-sm ${
+                          scan.result === "Normal"
+                            ? "bg-emerald-500/15 text-emerald-500 border-emerald-500/30"
+                            : "bg-rose-500/15 text-rose-500 border-rose-500/30"
+                        }`}
+                      >
                         {scan.result.toUpperCase()}
                       </span>
                     </div>
@@ -142,25 +152,32 @@ export default function PatientScansPage() {
                         <span className="text-[10px] font-bold text-brand-muted uppercase flex items-center space-x-1">
                           <Calendar className="w-3.5 h-3.5" />
                           <span>
-                            {new Date(scan.created_at).toLocaleDateString("en-US", {
-                              year: "numeric",
-                              month: "short",
-                              day: "numeric",
-                              hour: "2-digit",
-                              minute: "2-digit"
-                            })}
+                            {new Date(scan.created_at).toLocaleDateString(
+                              "en-US",
+                              {
+                                year: "numeric",
+                                month: "short",
+                                day: "numeric",
+                                hour: "2-digit",
+                                minute: "2-digit",
+                              },
+                            )}
                           </span>
                         </span>
                         <span className="text-xs font-bold text-brand-navy flex items-center space-x-0.5">
                           <Percent className="w-3.5 h-3.5" />
-                          <span>{(scan.confidence * 100).toFixed(1)}% AI confidence</span>
+                          <span>
+                            {(scan.confidence * 100).toFixed(1)}% AI confidence
+                          </span>
                         </span>
                       </div>
 
                       <div className="h-1.5 w-full bg-brand-surface rounded-full overflow-hidden">
                         <div
                           className={`h-full rounded-full ${
-                            scan.result === "Normal" ? "bg-brand-teal" : "bg-red-500"
+                            scan.result === "Normal"
+                              ? "bg-brand-teal"
+                              : "bg-red-500"
                           }`}
                           style={{ width: `${scan.confidence * 100}%` }}
                         />
@@ -177,7 +194,9 @@ export default function PatientScansPage() {
                         <span>Diagnostic Report Summary</span>
                       </h4>
                       <p className="text-xs text-brand-navy bg-brand-surface/40 rounded-lg p-3 italic break-words leading-relaxed">
-                        {scan.doctor_remarks ? `"${scan.doctor_remarks}"` : "Remarks pending clinician clinical notes."}
+                        {scan.doctor_remarks
+                          ? `"${scan.doctor_remarks}"`
+                          : "Remarks pending clinician clinical notes."}
                       </p>
                     </div>
                   </div>

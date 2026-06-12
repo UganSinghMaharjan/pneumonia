@@ -11,7 +11,7 @@ import {
   Shield,
   Loader2,
   Check,
-  AlertCircle
+  AlertCircle,
 } from "lucide-react";
 
 interface UserProfile {
@@ -42,7 +42,7 @@ export default function PatientSettingsPage() {
     gender: "",
     contact_number: "",
     address: "",
-    blood_group: ""
+    blood_group: "",
   });
 
   const router = useRouter();
@@ -68,7 +68,7 @@ export default function PatientSettingsPage() {
     setLoading(true);
     try {
       const response = await axios.get("http://localhost:8000/api/user/", {
-        headers: { Authorization: `Token ${authToken}` }
+        headers: { Authorization: `Token ${authToken}` },
       });
       const data = response.data;
       setForm({
@@ -78,7 +78,7 @@ export default function PatientSettingsPage() {
         gender: data.gender || "",
         contact_number: data.contact_number || "",
         address: data.address || "",
-        blood_group: data.blood_group || ""
+        blood_group: data.blood_group || "",
       });
     } catch (err) {
       console.error("Failed to fetch profile settings", err);
@@ -103,9 +103,9 @@ export default function PatientSettingsPage() {
           gender: form.gender,
           contact_number: form.contact_number,
           address: form.address,
-          blood_group: form.blood_group
+          blood_group: form.blood_group,
         },
-        { headers: { Authorization: `Token ${token}` } }
+        { headers: { Authorization: `Token ${token}` } },
       );
       setSuccess(true);
       setTimeout(() => setSuccess(false), 3000);
@@ -141,7 +141,9 @@ export default function PatientSettingsPage() {
 
         <main className="flex-1 overflow-y-auto p-8 space-y-8">
           <div>
-            <h1 className="text-3xl font-extrabold text-brand-navy mb-1">Account & Profile Settings</h1>
+            <h1 className="text-3xl font-extrabold text-brand-navy mb-1">
+              Account & Profile Settings
+            </h1>
             <p className="text-brand-muted font-medium">
               Update your personal credentials and health profile details.
             </p>
@@ -155,7 +157,9 @@ export default function PatientSettingsPage() {
             <div className="max-w-3xl bg-brand-white rounded-2xl border border-brand-border shadow-soft overflow-hidden">
               <div className="p-6 border-b border-brand-border flex items-center space-x-2">
                 <Settings className="w-5 h-5 text-brand-indigo" />
-                <h3 className="font-bold text-brand-navy text-base">Health Card Configuration</h3>
+                <h3 className="font-bold text-brand-navy text-base">
+                  Health Card Configuration
+                </h3>
               </div>
 
               <form onSubmit={handleSubmit} className="p-6 space-y-6">
@@ -168,40 +172,56 @@ export default function PatientSettingsPage() {
 
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                   <div>
-                    <label className="block text-xs font-bold text-brand-muted uppercase tracking-wider mb-2">First Name</label>
+                    <label className="block text-xs font-bold text-brand-muted uppercase tracking-wider mb-2">
+                      First Name
+                    </label>
                     <input
                       type="text"
                       value={form.first_name}
-                      onChange={(e) => setForm({ ...form, first_name: e.target.value })}
+                      onChange={(e) =>
+                        setForm({ ...form, first_name: e.target.value })
+                      }
                       className="w-full bg-brand-surface border border-transparent rounded-lg px-3.5 py-2.5 text-sm text-brand-navy focus:outline-none focus:ring-1 focus:ring-brand-indigo"
                     />
                   </div>
 
                   <div>
-                    <label className="block text-xs font-bold text-brand-muted uppercase tracking-wider mb-2">Last Name</label>
+                    <label className="block text-xs font-bold text-brand-muted uppercase tracking-wider mb-2">
+                      Last Name
+                    </label>
                     <input
                       type="text"
                       value={form.last_name}
-                      onChange={(e) => setForm({ ...form, last_name: e.target.value })}
+                      onChange={(e) =>
+                        setForm({ ...form, last_name: e.target.value })
+                      }
                       className="w-full bg-brand-surface border border-transparent rounded-lg px-3.5 py-2.5 text-sm text-brand-navy focus:outline-none focus:ring-1 focus:ring-brand-indigo"
                     />
                   </div>
 
                   <div>
-                    <label className="block text-xs font-bold text-brand-muted uppercase tracking-wider mb-2">Age (Years)</label>
+                    <label className="block text-xs font-bold text-brand-muted uppercase tracking-wider mb-2">
+                      Age (Years)
+                    </label>
                     <input
                       type="number"
                       value={form.age}
-                      onChange={(e) => setForm({ ...form, age: e.target.value })}
+                      onChange={(e) =>
+                        setForm({ ...form, age: e.target.value })
+                      }
                       className="w-full bg-brand-surface border border-transparent rounded-lg px-3.5 py-2.5 text-sm text-brand-navy focus:outline-none focus:ring-1 focus:ring-brand-indigo"
                     />
                   </div>
 
                   <div>
-                    <label className="block text-xs font-bold text-brand-muted uppercase tracking-wider mb-2">Gender</label>
+                    <label className="block text-xs font-bold text-brand-muted uppercase tracking-wider mb-2">
+                      Gender
+                    </label>
                     <select
                       value={form.gender}
-                      onChange={(e) => setForm({ ...form, gender: e.target.value })}
+                      onChange={(e) =>
+                        setForm({ ...form, gender: e.target.value })
+                      }
                       className="w-full bg-brand-surface border border-transparent rounded-lg px-3.5 py-2.5 text-sm text-brand-navy focus:outline-none focus:ring-1 focus:ring-brand-indigo"
                     >
                       <option value="">Select</option>
@@ -212,32 +232,44 @@ export default function PatientSettingsPage() {
                   </div>
 
                   <div>
-                    <label className="block text-xs font-bold text-brand-muted uppercase tracking-wider mb-2">Blood Group</label>
+                    <label className="block text-xs font-bold text-brand-muted uppercase tracking-wider mb-2">
+                      Blood Group
+                    </label>
                     <input
                       type="text"
                       placeholder="e.g. O+"
                       value={form.blood_group}
-                      onChange={(e) => setForm({ ...form, blood_group: e.target.value })}
+                      onChange={(e) =>
+                        setForm({ ...form, blood_group: e.target.value })
+                      }
                       className="w-full bg-brand-surface border border-transparent rounded-lg px-3.5 py-2.5 text-sm text-brand-navy focus:outline-none focus:ring-1 focus:ring-brand-indigo"
                     />
                   </div>
 
                   <div>
-                    <label className="block text-xs font-bold text-brand-muted uppercase tracking-wider mb-2">Contact Number</label>
+                    <label className="block text-xs font-bold text-brand-muted uppercase tracking-wider mb-2">
+                      Contact Number
+                    </label>
                     <input
                       type="text"
                       value={form.contact_number}
-                      onChange={(e) => setForm({ ...form, contact_number: e.target.value })}
+                      onChange={(e) =>
+                        setForm({ ...form, contact_number: e.target.value })
+                      }
                       className="w-full bg-brand-surface border border-transparent rounded-lg px-3.5 py-2.5 text-sm text-brand-navy focus:outline-none focus:ring-1 focus:ring-brand-indigo"
                     />
                   </div>
 
                   <div className="md:col-span-2">
-                    <label className="block text-xs font-bold text-brand-muted uppercase tracking-wider mb-2">Address</label>
+                    <label className="block text-xs font-bold text-brand-muted uppercase tracking-wider mb-2">
+                      Address
+                    </label>
                     <textarea
                       rows={3}
                       value={form.address}
-                      onChange={(e) => setForm({ ...form, address: e.target.value })}
+                      onChange={(e) =>
+                        setForm({ ...form, address: e.target.value })
+                      }
                       className="w-full bg-brand-surface border border-transparent rounded-lg px-3.5 py-2.5 text-sm text-brand-navy focus:outline-none focus:ring-1 focus:ring-brand-indigo resize-none"
                     />
                   </div>

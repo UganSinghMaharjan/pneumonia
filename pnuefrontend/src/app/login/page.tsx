@@ -44,9 +44,9 @@ export default function Login() {
       ? "http://localhost:8000/api/login/"
       : "http://localhost:8000/api/register/";
 
-    const payload = { 
-      email: email.trim().toLowerCase(), 
-      password 
+    const payload = {
+      email: email.trim().toLowerCase(),
+      password,
     };
 
     try {
@@ -56,7 +56,9 @@ export default function Login() {
         // Switch back to login view after successful registration
         setIsLogin(true);
         setPassword(""); // clear password for security
-        alert("Account created successfully! Please sign in with your new credentials.");
+        alert(
+          "Account created successfully! Please sign in with your new credentials.",
+        );
         return;
       }
 
@@ -75,7 +77,7 @@ export default function Login() {
       } else {
         router.push("/patient-dashboard");
       }
-      
+
       router.refresh();
     } catch (err: any) {
       // Removed console.error to prevent expected 401s from cluttering the dev console

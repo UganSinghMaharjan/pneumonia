@@ -6,16 +6,19 @@ This is a Django-based backend for the Pneumonia Detection project. It uses a CN
 
 1. **Virtual Environment**:
    Ensure you have a virtual environment set up. If not, create one:
+
    ```powershell
    python -m venv venv
    ```
 
 2. **Activate Virtual Environment**:
+
    ```powershell
    .\venv\Scripts\Activate.ps1
    ```
 
 3. **Install Dependencies**:
+
    ```powershell
    pip install -r requirements.txt
    ```
@@ -25,13 +28,14 @@ This is a Django-based backend for the Pneumonia Detection project. It uses a CN
    `pnuebackend/model/pneumonia_cnn_model.h5`
 
 5. **Run Migrations**:
+
    ```powershell
    python manage.py migrate
    ```
 
 6. **Start the Server**:
    ```powershell
-   python manage.py runserver 8001
+   python manage.py runserver 8000
    ```
 
 ## API Endpoints

@@ -16,7 +16,7 @@ import {
   Send,
   Loader2,
   Bookmark,
-  ShieldCheck
+  ShieldCheck,
 } from "lucide-react";
 
 interface AppointmentRecord {
@@ -45,7 +45,7 @@ function AppointmentsContent() {
     requested_date: "",
     requested_time: "",
     reason: "",
-    notes: ""
+    notes: "",
   });
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState<string | null>(null);
@@ -76,7 +76,7 @@ function AppointmentsContent() {
       setForm((prev) => ({
         ...prev,
         reason: `Pulmonary Consultation referral from ${refClinic}`,
-        notes: "Requested checkup scan and chest radiograph analysis."
+        notes: "Requested checkup scan and chest radiograph analysis.",
       }));
     }
   }, [searchParams]);
@@ -84,9 +84,12 @@ function AppointmentsContent() {
   const fetchAppointments = async (authToken: string) => {
     setLoading(true);
     try {
-      const response = await axios.get("http://localhost:8000/api/appointments/", {
-        headers: { Authorization: `Token ${authToken}` }
-      });
+      const response = await axios.get(
+        "http://localhost:8000/api/appointments/",
+        {
+          headers: { Authorization: `Token ${authToken}` },
+        },
+      );
       setAppointments(response.data);
     } catch (err) {
       console.error("Failed to fetch appointments", err);
@@ -110,20 +113,23 @@ function AppointmentsContent() {
           requested_date: form.requested_date,
           requested_time: form.requested_time,
           reason: form.reason,
-          notes: form.notes
+          notes: form.notes,
         },
-        { headers: { Authorization: `Token ${token}` } }
+        { headers: { Authorization: `Token ${token}` } },
       );
       setSuccess("Your appointment request was submitted successfully!");
       setForm({
         requested_date: "",
         requested_time: "",
         reason: "",
-        notes: ""
+        notes: "",
       });
       fetchAppointments(token);
     } catch (err: any) {
-      setError(err.response?.data?.error || "Failed to submit request. Please try again.");
+      setError(
+        err.response?.data?.error ||
+          "Failed to submit request. Please try again.",
+      );
     } finally {
       setSubmitLoading(false);
     }
@@ -171,7 +177,9 @@ function AppointmentsContent() {
       <div className="min-h-screen flex items-center justify-center bg-brand-surface">
         <div className="flex flex-col items-center space-y-4">
           <Loader2 className="w-10 h-10 text-brand-indigo animate-spin" />
-          <p className="text-brand-muted font-medium text-sm">Loading clinic portal...</p>
+          <p className="text-brand-muted font-medium text-sm">
+            Loading clinic portal...
+          </p>
         </div>
       </div>
     );
@@ -190,12 +198,12 @@ function AppointmentsContent() {
               Clinic Appointment Manager
             </h1>
             <p className="text-brand-muted font-medium">
-              Book pulmonary checkups and view status logs for your appointment history.
+              Book pulmonary checkups and view status logs for your appointment
+              history.
             </p>
           </div>
 
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-            
             {/* Left/Middle: Booking Form Card */}
             <div className="lg:col-span-1">
               <div className="bg-brand-white rounded-2xl border border-brand-border shadow-soft p-6 sticky top-8">
@@ -204,7 +212,11 @@ function AppointmentsContent() {
                   <span>Book Appointment</span>
                 </h3>
                 <p className="text-xs text-brand-muted mb-6">
-                  Select your preferred schedule. All bookings are routed to <strong className="text-brand-navy">dr_maharjans@gmail.com</strong> for approval.
+                  Select your preferred schedule. All bookings are routed to{" "}
+                  <strong className="text-brand-navy">
+                    dr_maharjans@gmail.com
+                  </strong>{" "}
+                  for approval.
                 </p>
 
                 {error && (
@@ -231,7 +243,9 @@ function AppointmentsContent() {
                         type="date"
                         required
                         value={form.requested_date}
-                        onChange={(e) => setForm({ ...form, requested_date: e.target.value })}
+                        onChange={(e) =>
+                          setForm({ ...form, requested_date: e.target.value })
+                        }
                         className="w-full bg-brand-surface border border-transparent rounded-lg px-3.5 py-2.5 text-sm text-brand-navy focus:outline-none focus:ring-1 focus:ring-brand-indigo"
                       />
                     </div>
@@ -246,7 +260,9 @@ function AppointmentsContent() {
                         type="time"
                         required
                         value={form.requested_time}
-                        onChange={(e) => setForm({ ...form, requested_time: e.target.value })}
+                        onChange={(e) =>
+                          setForm({ ...form, requested_time: e.target.value })
+                        }
                         className="w-full bg-brand-surface border border-transparent rounded-lg px-3.5 py-2.5 text-sm text-brand-navy focus:outline-none focus:ring-1 focus:ring-brand-indigo"
                       />
                     </div>
@@ -261,7 +277,9 @@ function AppointmentsContent() {
                       required
                       placeholder="e.g. Chest discomfort, annual X-ray"
                       value={form.reason}
-                      onChange={(e) => setForm({ ...form, reason: e.target.value })}
+                      onChange={(e) =>
+                        setForm({ ...form, reason: e.target.value })
+                      }
                       className="w-full bg-brand-surface border border-transparent rounded-lg px-3.5 py-2.5 text-sm text-brand-navy placeholder:text-brand-muted focus:outline-none focus:ring-1 focus:ring-brand-indigo"
                     />
                   </div>
@@ -274,7 +292,9 @@ function AppointmentsContent() {
                       rows={3}
                       placeholder="List details about current symptoms..."
                       value={form.notes}
-                      onChange={(e) => setForm({ ...form, notes: e.target.value })}
+                      onChange={(e) =>
+                        setForm({ ...form, notes: e.target.value })
+                      }
                       className="w-full bg-brand-surface border border-transparent rounded-lg px-3.5 py-2.5 text-sm text-brand-navy placeholder:text-brand-muted focus:outline-none focus:ring-1 focus:ring-brand-indigo resize-none"
                     />
                   </div>
@@ -314,7 +334,9 @@ function AppointmentsContent() {
                   </div>
                 ) : appointments.length === 0 ? (
                   <div className="text-center py-12 bg-brand-surface/30 rounded-xl border border-dashed border-brand-border">
-                    <p className="text-brand-muted text-sm font-semibold">No appointment requests found.</p>
+                    <p className="text-brand-muted text-sm font-semibold">
+                      No appointment requests found.
+                    </p>
                   </div>
                 ) : (
                   <div className="space-y-4">
@@ -325,15 +347,20 @@ function AppointmentsContent() {
                       >
                         <div className="space-y-1.5 flex-1">
                           <div className="flex flex-wrap items-center gap-3">
-                            <span className={`px-2.5 py-0.5 rounded-full text-xs font-bold border ${getStatusBadge(app.status)}`}>
+                            <span
+                              className={`px-2.5 py-0.5 rounded-full text-xs font-bold border ${getStatusBadge(app.status)}`}
+                            >
                               {app.status}
                             </span>
                             <span className="text-xs text-brand-muted font-bold flex items-center space-x-1">
                               <Calendar className="w-3.5 h-3.5" />
-                              <span>Requested for: {app.requested_date} @ {app.requested_time}</span>
+                              <span>
+                                Requested for: {app.requested_date} @{" "}
+                                {app.requested_time}
+                              </span>
                             </span>
                           </div>
-                          
+
                           <h4 className="font-bold text-brand-navy text-sm pt-1">
                             Reason: {app.reason}
                           </h4>
@@ -345,10 +372,18 @@ function AppointmentsContent() {
 
                           {/* Approval Status Message Banner */}
                           <div className="bg-brand-surface/40 p-3 rounded-lg text-xs font-semibold mt-3 text-brand-navy flex items-center space-x-2 border border-brand-border/40">
-                            {app.status === "Pending" && <Clock className="w-4 h-4 text-amber-500" />}
-                            {app.status === "Accepted" && <CheckCircle className="w-4 h-4 text-emerald-500" />}
-                            {app.status === "Rejected" && <AlertCircle className="w-4 h-4 text-rose-500" />}
-                            {app.status === "Completed" && <CheckCircle className="w-4 h-4 text-brand-teal" />}
+                            {app.status === "Pending" && (
+                              <Clock className="w-4 h-4 text-amber-500" />
+                            )}
+                            {app.status === "Accepted" && (
+                              <CheckCircle className="w-4 h-4 text-emerald-500" />
+                            )}
+                            {app.status === "Rejected" && (
+                              <AlertCircle className="w-4 h-4 text-rose-500" />
+                            )}
+                            {app.status === "Completed" && (
+                              <CheckCircle className="w-4 h-4 text-brand-teal" />
+                            )}
                             <span>{getStatusMessage(app.status)}</span>
                           </div>
 
@@ -356,20 +391,35 @@ function AppointmentsContent() {
                           {app.status === "Accepted" && (
                             <div className="bg-emerald-50 border border-emerald-200 text-emerald-800 p-3 rounded-lg text-xs font-bold mt-2 flex items-center space-x-2 shadow-sm">
                               <CheckCircle className="w-4 h-4 text-emerald-600" />
-                              <span>Confirmed checkup slot: <strong className="text-brand-navy">{app.appointment_date} at {app.appointment_time}</strong></span>
+                              <span>
+                                Confirmed checkup slot:{" "}
+                                <strong className="text-brand-navy">
+                                  {app.appointment_date} at{" "}
+                                  {app.appointment_time}
+                                </strong>
+                              </span>
                             </div>
                           )}
 
                           {app.doctor_notes && (
                             <div className="p-3 bg-brand-indigo/5 rounded-lg border border-brand-indigo/10 text-xs mt-2">
-                              <strong className="text-brand-navy font-bold">Doctor Notes:</strong> "{app.doctor_notes}"
+                              <strong className="text-brand-navy font-bold">
+                                Doctor Notes:
+                              </strong>{" "}
+                              "{app.doctor_notes}"
                             </div>
                           )}
                         </div>
                         <div className="text-left md:text-right border-t md:border-t-0 border-brand-border/40 pt-4 md:pt-0">
-                          <span className="text-[10px] font-bold text-brand-muted uppercase block">Consultant</span>
-                          <span className="text-xs font-bold text-brand-navy block">Dr. Ugan Maharjan</span>
-                          <span className="text-[10px] text-brand-muted block mt-0.5">dr_maharjans@gmail.com</span>
+                          <span className="text-[10px] font-bold text-brand-muted uppercase block">
+                            Consultant
+                          </span>
+                          <span className="text-xs font-bold text-brand-navy block">
+                            Dr. Ugan Maharjan
+                          </span>
+                          <span className="text-[10px] text-brand-muted block mt-0.5">
+                            dr_maharjans@gmail.com
+                          </span>
                         </div>
                       </div>
                     ))}
@@ -377,7 +427,6 @@ function AppointmentsContent() {
                 )}
               </div>
             </div>
-
           </div>
         </main>
       </div>
@@ -387,11 +436,13 @@ function AppointmentsContent() {
 
 export default function AppointmentsPage() {
   return (
-    <Suspense fallback={
-      <div className="min-h-screen flex items-center justify-center bg-brand-surface">
-        <Loader2 className="w-8 h-8 text-brand-indigo animate-spin" />
-      </div>
-    }>
+    <Suspense
+      fallback={
+        <div className="min-h-screen flex items-center justify-center bg-brand-surface">
+          <Loader2 className="w-8 h-8 text-brand-indigo animate-spin" />
+        </div>
+      }
+    >
       <AppointmentsContent />
     </Suspense>
   );
