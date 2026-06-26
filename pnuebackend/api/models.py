@@ -41,7 +41,7 @@ class Appointment(models.Model):
 class Scan(models.Model):
     patient = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name='scans')
     image = models.ImageField(upload_to='scans/')
-    result = models.CharField(max_length=50)  # 'Normal' or 'Pneumonia'
+    result = models.CharField(max_length=50)  
     confidence = models.FloatField()
     doctor_remarks = models.TextField(null=True, blank=True)
     created_at = models.DateTimeField(auto_now_add=True)
