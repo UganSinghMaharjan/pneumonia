@@ -82,7 +82,7 @@ export default function DoctorAppointmentsPage() {
     setLoading(true);
     try {
       const response = await axios.get(
-        "http://localhost:8000/api/appointments/",
+        "/backend/appointments",
         {
           headers: { Authorization: `Token ${authToken}` },
         },
@@ -112,7 +112,7 @@ export default function DoctorAppointmentsPage() {
       }
 
       await axios.patch(
-        `http://localhost:8000/api/appointments/${selectedApp.id}/`,
+        `/backend/appointments/${selectedApp.id}`,
         payload,
         { headers: { Authorization: `Token ${token}` } },
       );
@@ -139,7 +139,7 @@ export default function DoctorAppointmentsPage() {
 
     try {
       await axios.patch(
-        `http://localhost:8000/api/appointments/${appId}/`,
+        `/backend/appointments/${appId}`,
         {
           action: "complete",
           doctor_notes: "Appointment successfully conducted.",

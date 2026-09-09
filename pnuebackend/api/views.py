@@ -263,7 +263,7 @@ class PredictView(APIView):
                 'confidence': confidence,
                 'probabilities': probabilities,
                 'doctor_remarks': doctor_remarks,
-                'image_url': request.build_absolute_uri(scan.image.url),
+                'image_url': scan.image.url if scan.image else None,
                 'created_at': scan.created_at
             }, status=status.HTTP_200_OK)
 
@@ -291,7 +291,7 @@ class ScanListView(APIView):
                 'result': s.result,
                 'confidence': s.confidence,
                 'doctor_remarks': s.doctor_remarks,
-                'image_url': request.build_absolute_uri(s.image.url) if s.image else None,
+                'image_url': s.image.url if s.image else None,
                 'created_at': s.created_at
             })
         return Response(data, status=status.HTTP_200_OK)
@@ -302,7 +302,7 @@ class ScanListView(APIView):
         scan = Scan.objects.filter(id=pk).first()
         if not scan:
             return Response({'error': 'Scan record not found.'}, status=status.HTTP_404_NOT_FOUND)
-        
+
         scan.doctor_remarks = request.data.get('doctor_remarks', scan.doctor_remarks)
         scan.save()
         return Response({
@@ -310,6 +310,22 @@ class ScanListView(APIView):
             'doctor_remarks': scan.doctor_remarks,
             'message': 'Remarks updated successfully'
         }, status=status.HTTP_200_OK)
+
+    def delete(self, request, pk, *args, **kwargs):
+        if request.user.role != 'doctor':
+            return Response({'error': 'Unauthorized access.'}, status=status.HTTP_403_FORBIDDEN)
+        scan = Scan.objects.filter(id=pk).first()
+        if not scan:
+            return Response({'error': 'Scan record not found.'}, status=status.HTTP_404_NOT_FOUND)
+
+        # Delete image file from disk to avoid orphaned media files
+        if scan.image:
+            image_path = scan.image.path
+            if os.path.isfile(image_path):
+                os.remove(image_path)
+
+        scan.delete()
+        return Response({'message': 'Scan deleted successfully.'}, status=status.HTTP_200_OK)
 
 class AppointmentView(APIView):
     authentication_classes = [TokenAuthentication]

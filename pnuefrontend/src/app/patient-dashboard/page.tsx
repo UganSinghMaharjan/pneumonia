@@ -172,7 +172,7 @@ export default function PatientDashboard() {
     const headers = { Authorization: `Token ${authToken}` };
     try {
       // 1. Fetch Profile
-      const profileRes = await axios.get("http://localhost:8000/api/user/", {
+      const profileRes = await axios.get("/backend/user", {
         headers,
       });
       setProfile(profileRes.data);
@@ -187,28 +187,28 @@ export default function PatientDashboard() {
       });
 
       // 2. Fetch Scans
-      const scansRes = await axios.get("http://localhost:8000/api/scans/", {
+      const scansRes = await axios.get("/backend/scans", {
         headers,
       });
       setScans(scansRes.data);
 
       // 3. Fetch Appointments
       const appRes = await axios.get(
-        "http://localhost:8000/api/appointments/",
+        "/backend/appointments",
         { headers },
       );
       setAppointments(appRes.data);
 
       // 4. Fetch Prescriptions
       const presRes = await axios.get(
-        "http://localhost:8000/api/prescriptions/",
+        "/backend/prescriptions",
         { headers },
       );
       setPrescriptions(presRes.data);
 
       // 5. Fetch Medical History
       const histRes = await axios.get(
-        "http://localhost:8000/api/medical-histories/",
+        "/backend/medical-histories",
         { headers },
       );
       setHistory(histRes.data);
@@ -229,7 +229,7 @@ export default function PatientDashboard() {
     try {
       const headers = { Authorization: `Token ${token}` };
       const response = await axios.patch(
-        "http://localhost:8000/api/user/",
+        "/backend/user",
         {
           first_name: editForm.first_name,
           last_name: editForm.last_name,

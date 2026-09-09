@@ -6,9 +6,7 @@ import axios from "axios";
 import { Sidebar } from "@/components/Sidebar";
 import { Topbar } from "@/components/Topbar";
 import {
-  Activity,
   Search,
-  Filter,
   Loader2,
   Calendar,
   Percent,
@@ -18,6 +16,7 @@ import {
   Check,
   X,
   FileImage,
+  Trash2,
 } from "lucide-react";
 
 interface ScanRecord {
@@ -40,14 +39,16 @@ export default function DoctorScansPage() {
 
   const [scans, setScans] = useState<ScanRecord[]>([]);
   const [searchQuery, setSearchQuery] = useState("");
-  const [filterResult, setFilterResult] = useState<
-    "All" | "Normal" | "Pneumonia"
-  >("All");
+  const [filterResult, setFilterResult] = useState<"All" | "Normal" | "Pneumonia">("All");
 
   // Edit Remarks State
   const [editingScanId, setEditingScanId] = useState<number | null>(null);
   const [editRemarksText, setEditRemarksText] = useState("");
   const [remarksLoading, setRemarksLoading] = useState(false);
+
+  // Delete State
+  const [confirmDeleteId, setConfirmDeleteId] = useState<number | null>(null);
+  const [deleteLoading, setDeleteLoading] = useState(false);
 
   const router = useRouter();
 
@@ -71,7 +72,7 @@ export default function DoctorScansPage() {
   const fetchScans = async (authToken: string) => {
     setLoading(true);
     try {
-      const response = await axios.get("http://localhost:8000/api/scans/", {
+      const response = await axios.get("/backend/scans", {
         headers: { Authorization: `Token ${authToken}` },
       });
       setScans(response.data);
@@ -84,16 +85,13 @@ export default function DoctorScansPage() {
 
   const handleUpdateRemarks = async (scanId: number) => {
     if (!token) return;
-
     setRemarksLoading(true);
     try {
       await axios.patch(
-        `http://localhost:8000/api/scans/${scanId}/`,
+        `/backend/scans/${scanId}`,
         { doctor_remarks: editRemarksText },
         { headers: { Authorization: `Token ${token}` } },
       );
-
-      // Update local state
       setScans((prev) =>
         prev.map((s) =>
           s.id === scanId ? { ...s, doctor_remarks: editRemarksText } : s,
@@ -106,6 +104,23 @@ export default function DoctorScansPage() {
       alert("Failed to save remarks. Please try again.");
     } finally {
       setRemarksLoading(false);
+    }
+  };
+
+  const handleDeleteScan = async (scanId: number) => {
+    if (!token) return;
+    setDeleteLoading(true);
+    try {
+      await axios.delete(`/backend/scans/${scanId}`, {
+        headers: { Authorization: `Token ${token}` },
+      });
+      setScans((prev) => prev.filter((s) => s.id !== scanId));
+      setConfirmDeleteId(null);
+    } catch (err) {
+      console.error("Failed to delete scan", err);
+      alert("Failed to delete scan. Please try again.");
+    } finally {
+      setDeleteLoading(false);
     }
   };
 
@@ -124,16 +139,12 @@ export default function DoctorScansPage() {
     );
   }
 
-  // Filter Scans
   const filteredScans = scans.filter((scan) => {
     const matchesSearch =
       scan.patient_name.toLowerCase().includes(searchQuery.toLowerCase()) ||
       scan.patient_email.toLowerCase().includes(searchQuery.toLowerCase()) ||
       scan.result.toLowerCase().includes(searchQuery.toLowerCase());
-
-    const matchesFilter =
-      filterResult === "All" || scan.result === filterResult;
-
+    const matchesFilter = filterResult === "All" || scan.result === filterResult;
     return matchesSearch && matchesFilter;
   });
 
@@ -145,18 +156,17 @@ export default function DoctorScansPage() {
         <Topbar username={username} onLogout={handleLogout} />
 
         <main className="flex-1 overflow-y-auto p-8 space-y-8">
+          {/* Header + Filters */}
           <div className="flex flex-col md:flex-row md:items-center md:justify-between space-y-4 md:space-y-0">
             <div>
               <h1 className="text-3xl font-extrabold text-brand-navy mb-1">
                 Clinic Scan Catalogue
               </h1>
               <p className="text-brand-muted font-medium">
-                Browse and update diagnostic remarks for patient chest
-                radiographs.
+                Browse, edit remarks, and delete patient chest radiographs.
               </p>
             </div>
 
-            {/* Filters bar */}
             <div className="flex items-center space-x-3">
               <div className="relative">
                 <Search className="w-4 h-4 text-brand-muted absolute left-3 top-3" />
@@ -187,6 +197,7 @@ export default function DoctorScansPage() {
             </div>
           </div>
 
+          {/* Content */}
           {loading ? (
             <div className="flex justify-center items-center py-12">
               <Loader2 className="w-8 h-8 text-brand-indigo animate-spin" />
@@ -209,6 +220,7 @@ export default function DoctorScansPage() {
                   key={scan.id}
                   className="bg-brand-white border border-brand-border rounded-2xl overflow-hidden shadow-soft flex flex-col hover:shadow-md transition-shadow"
                 >
+                  {/* X-ray image */}
                   <div className="h-56 bg-slate-950 flex items-center justify-center overflow-hidden relative group">
                     {scan.image_url ? (
                       <img
@@ -234,20 +246,17 @@ export default function DoctorScansPage() {
                     </div>
                   </div>
 
+                  {/* Card body */}
                   <div className="p-5 flex-1 flex flex-col justify-between space-y-4">
                     <div className="space-y-2">
                       <div className="flex justify-between items-center">
                         <span className="text-[10px] font-bold text-brand-muted uppercase flex items-center space-x-1">
                           <Calendar className="w-3.5 h-3.5" />
-                          <span>
-                            {new Date(scan.created_at).toLocaleDateString()}
-                          </span>
+                          <span>{new Date(scan.created_at).toLocaleDateString()}</span>
                         </span>
                         <span className="text-xs font-bold text-brand-navy flex items-center space-x-0.5">
                           <Percent className="w-3.5 h-3.5" />
-                          <span>
-                            {(scan.confidence * 100).toFixed(1)}% AI confidence
-                          </span>
+                          <span>{(scan.confidence * 100).toFixed(1)}% AI confidence</span>
                         </span>
                       </div>
 
@@ -259,6 +268,7 @@ export default function DoctorScansPage() {
                       </div>
                     </div>
 
+                    {/* Remarks + actions */}
                     <div className="border-t border-brand-border/40 pt-4">
                       <div className="flex justify-between items-center mb-1.5">
                         <h4 className="text-xs font-bold text-brand-navy flex items-center space-x-1.5">
@@ -267,22 +277,66 @@ export default function DoctorScansPage() {
                           ) : (
                             <AlertCircle className="w-4 h-4 text-rose-500 flex-shrink-0" />
                           )}
-                          <span>Diagnostic Clinician Remarks</span>
+                          <span>Clinician Remarks</span>
                         </h4>
-                        {editingScanId !== scan.id && (
-                          <button
-                            onClick={() => {
-                              setEditingScanId(scan.id);
-                              setEditRemarksText(scan.doctor_remarks || "");
-                            }}
-                            className="text-brand-indigo hover:text-brand-lavender text-[10px] font-bold flex items-center space-x-1"
-                          >
-                            <Edit2 className="w-3 h-3" />
-                            <span>Edit</span>
-                          </button>
-                        )}
+
+                        <div className="flex items-center space-x-2">
+                          {/* Edit button */}
+                          {editingScanId !== scan.id && (
+                            <button
+                              onClick={() => {
+                                setEditingScanId(scan.id);
+                                setEditRemarksText(scan.doctor_remarks || "");
+                                setConfirmDeleteId(null);
+                              }}
+                              className="text-brand-indigo hover:text-brand-lavender text-[10px] font-bold flex items-center space-x-1 transition-colors"
+                            >
+                              <Edit2 className="w-3 h-3" />
+                              <span>Edit</span>
+                            </button>
+                          )}
+
+                          {/* Delete button / inline confirm */}
+                          {confirmDeleteId !== scan.id ? (
+                            <button
+                              onClick={() => {
+                                setConfirmDeleteId(scan.id);
+                                setEditingScanId(null);
+                              }}
+                              className="text-rose-400 hover:text-rose-600 text-[10px] font-bold flex items-center space-x-1 transition-colors"
+                              title="Delete scan"
+                            >
+                              <Trash2 className="w-3 h-3" />
+                              <span>Delete</span>
+                            </button>
+                          ) : (
+                            <div className="flex items-center space-x-1 bg-rose-50 border border-rose-200 rounded-lg px-2 py-1">
+                              <span className="text-[10px] font-bold text-rose-600">Sure?</span>
+                              <button
+                                onClick={() => handleDeleteScan(scan.id)}
+                                disabled={deleteLoading}
+                                className="p-0.5 bg-rose-500 text-white rounded hover:bg-rose-600 transition-colors disabled:opacity-60"
+                                title="Confirm delete"
+                              >
+                                {deleteLoading ? (
+                                  <Loader2 className="w-3 h-3 animate-spin" />
+                                ) : (
+                                  <Check className="w-3 h-3" />
+                                )}
+                              </button>
+                              <button
+                                onClick={() => setConfirmDeleteId(null)}
+                                className="p-0.5 bg-brand-surface border border-brand-border text-brand-muted rounded hover:bg-brand-border transition-colors"
+                                title="Cancel"
+                              >
+                                <X className="w-3 h-3" />
+                              </button>
+                            </div>
+                          )}
+                        </div>
                       </div>
 
+                      {/* Edit remarks inline */}
                       {editingScanId === scan.id ? (
                         <div className="space-y-2">
                           <textarea
@@ -304,7 +358,7 @@ export default function DoctorScansPage() {
                             <button
                               onClick={() => handleUpdateRemarks(scan.id)}
                               disabled={remarksLoading}
-                              className="p-1 bg-brand-indigo text-white rounded hover:bg-[#2a2853] flex items-center"
+                              className="p-1 bg-brand-indigo text-white rounded hover:bg-[#2a2853] flex items-center disabled:opacity-60"
                             >
                               {remarksLoading ? (
                                 <Loader2 className="w-3.5 h-3.5 animate-spin" />

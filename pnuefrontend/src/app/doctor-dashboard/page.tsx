@@ -84,13 +84,13 @@ export default function DoctorDashboard() {
     try {
       // Fetch patients
       const patientsRes = await axios.get(
-        "http://localhost:8000/api/patients/",
+        "/backend/patients",
         { headers },
       );
       setPatients(patientsRes.data);
 
       // Fetch all scans
-      const scansRes = await axios.get("http://localhost:8000/api/scans/", {
+      const scansRes = await axios.get("/backend/scans", {
         headers,
       });
       setRecentScans(scansRes.data);
@@ -147,7 +147,7 @@ export default function DoctorDashboard() {
 
     try {
       const response = await axios.post(
-        "http://localhost:8000/api/predict/",
+        "/backend/predict",
         formData,
         {
           headers: {

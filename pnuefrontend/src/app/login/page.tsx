@@ -41,8 +41,8 @@ export default function Login() {
     setLoading(true);
 
     const url = isLogin
-      ? "http://localhost:8000/api/login/"
-      : "http://localhost:8000/api/register/";
+      ? "/backend/login"
+      : "/backend/register";
 
     const payload = {
       email: email.trim().toLowerCase(),

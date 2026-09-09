@@ -53,7 +53,7 @@ export default function PatientScansPage() {
   const fetchScans = async (authToken: string) => {
     setLoading(true);
     try {
-      const response = await axios.get("http://localhost:8000/api/scans/", {
+      const response = await axios.get("/backend/scans", {
         headers: { Authorization: `Token ${authToken}` },
       });
       setScans(response.data);

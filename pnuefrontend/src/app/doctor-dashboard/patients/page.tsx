@@ -123,7 +123,7 @@ export default function DoctorPatientsPage() {
   const fetchPatients = async (authToken: string) => {
     setLoading(true);
     try {
-      const response = await axios.get("http://localhost:8000/api/patients/", {
+      const response = await axios.get("/backend/patients", {
         headers: { Authorization: `Token ${authToken}` },
       });
       setPatients(response.data);
@@ -143,7 +143,7 @@ export default function DoctorPatientsPage() {
     const headers = { Authorization: `Token ${authToken}` };
     try {
       // Scans
-      const scansRes = await axios.get("http://localhost:8000/api/scans/", {
+      const scansRes = await axios.get("/backend/scans", {
         headers,
       });
       setPatientScans(
@@ -152,14 +152,14 @@ export default function DoctorPatientsPage() {
 
       // Prescriptions
       const presRes = await axios.get(
-        `http://localhost:8000/api/prescriptions/?patient_id=${patientId}`,
+        `/backend/prescriptions/?patient_id=${patientId}`,
         { headers },
       );
       setPatientPrescriptions(presRes.data);
 
       // History
       const histRes = await axios.get(
-        `http://localhost:8000/api/medical-histories/?patient_id=${patientId}`,
+        `/backend/medical-histories/?patient_id=${patientId}`,
         { headers },
       );
       setPatientHistory(histRes.data);
@@ -184,7 +184,7 @@ export default function DoctorPatientsPage() {
     setFormSubmitting(true);
     try {
       await axios.post(
-        "http://localhost:8000/api/medical-histories/",
+        "/backend/medical-histories",
         {
           patient_id: selectedPatient.id,
           condition: historyForm.condition,
@@ -220,7 +220,7 @@ export default function DoctorPatientsPage() {
     setFormSubmitting(true);
     try {
       await axios.post(
-        "http://localhost:8000/api/prescriptions/",
+        "/backend/prescriptions",
         {
           patient_id: selectedPatient.id,
           medication: prescriptionForm.medication,

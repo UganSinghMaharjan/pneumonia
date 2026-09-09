@@ -67,7 +67,7 @@ export default function PatientSettingsPage() {
   const fetchProfile = async (authToken: string) => {
     setLoading(true);
     try {
-      const response = await axios.get("http://localhost:8000/api/user/", {
+      const response = await axios.get("/backend/user", {
         headers: { Authorization: `Token ${authToken}` },
       });
       const data = response.data;
@@ -95,7 +95,7 @@ export default function PatientSettingsPage() {
     setSuccess(false);
     try {
       await axios.patch(
-        "http://localhost:8000/api/user/",
+        "/backend/user",
         {
           first_name: form.first_name,
           last_name: form.last_name,

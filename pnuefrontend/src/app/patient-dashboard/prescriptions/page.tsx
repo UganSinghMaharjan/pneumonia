@@ -53,7 +53,7 @@ export default function PatientPrescriptionsPage() {
     setLoading(true);
     try {
       const response = await axios.get(
-        "http://localhost:8000/api/prescriptions/",
+        "/backend/prescriptions",
         {
           headers: { Authorization: `Token ${authToken}` },
         },

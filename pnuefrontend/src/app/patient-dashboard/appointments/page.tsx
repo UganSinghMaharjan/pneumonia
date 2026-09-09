@@ -85,7 +85,7 @@ function AppointmentsContent() {
     setLoading(true);
     try {
       const response = await axios.get(
-        "http://localhost:8000/api/appointments/",
+        "/backend/appointments",
         {
           headers: { Authorization: `Token ${authToken}` },
         },
@@ -108,7 +108,7 @@ function AppointmentsContent() {
 
     try {
       await axios.post(
-        "http://localhost:8000/api/appointments/",
+        "/backend/appointments",
         {
           requested_date: form.requested_date,
           requested_time: form.requested_time,
