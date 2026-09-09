@@ -1,6 +1,4 @@
-# ──────────────────────────────────────────────
-# Node / Next.js
-# ──────────────────────────────────────────────
+# Node
 node_modules/
 .next/
 dist/
@@ -10,70 +8,49 @@ npm-debug.log*
 yarn-debug.log*
 yarn-error.log*
 
-# TypeScript build cache
-tsconfig.tsbuildinfo
-
-# ──────────────────────────────────────────────
-# Python / Django
-# ──────────────────────────────────────────────
+# Python
+venv
+.venv
 venv/
 .venv/
-env/
 __pycache__/
 *.pyc
 *.pyo
 *.pyd
 .Python
+env/
 pip-log.txt
 pip-delete-this-directory.txt
 
-# ──────────────────────────────────────────────
-# Database
-# ──────────────────────────────────────────────
-*.sqlite3
-*.sqlite3.bak
-db.sqlite3
-
-# ──────────────────────────────────────────────
-# Media / User-uploaded files
-# ──────────────────────────────────────────────
-pnuebackend/media/
-
-# ──────────────────────────────────────────────
-# AI Models & Large Binary Files
-# (GitHub 100MB file limit — never commit these)
-# ──────────────────────────────────────────────
+# Models and Large Files (Very important for GitHub limits)
 *.h5
 *.hdf5
 *.pt
 *.pth
 *.pkl
-*.onnx
 pnuebackend/model/
-pnuemoniamodel/*.h5
+pnuemoniamodel/pneumonia_cnn_model.h5
 
-# ──────────────────────────────────────────────
-# Environment Variables
-# ──────────────────────────────────────────────
+# Database
+db.sqlite3
+*.sqlite3
+*.sqlite3.bak
+
+# Uploaded Media / Scans
+pnuebackend/media/
+
+# IDE & Tooling
+.vscode/
+*.tsbuildinfo
+CLAUDE.md
+
+# OS Files
+.DS_Store
+Thumbs.db
+
+# Environment variables
 .env
 .env.local
 .env.development.local
 .env.test.local
 .env.production.local
-
-# ──────────────────────────────────────────────
-# IDE / Editor Files
-# ──────────────────────────────────────────────
-.vscode/
-.idea/
-*.swp
-*.swo
-CLAUDE.md
-AGENTS.md
-
-# ──────────────────────────────────────────────
-# OS Files
-# ──────────────────────────────────────────────
-.DS_Store
-Thumbs.db
-desktop.ini
