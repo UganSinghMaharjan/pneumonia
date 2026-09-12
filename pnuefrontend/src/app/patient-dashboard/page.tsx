@@ -689,8 +689,118 @@ export default function PatientDashboard() {
                       ))}
                     </div>
                   )}
+
+                  {/* Previous Scans */}
+                  <div className="mt-6 pt-5 border-t border-brand-border/60">
+                    <div className="flex justify-between items-center mb-3">
+                      <h4 className="text-sm font-bold text-brand-navy flex items-center space-x-2">
+                        <Activity className="w-4 h-4 text-brand-indigo" />
+                        <span>Previous Scans</span>
+                      </h4>
+                      <button
+                        onClick={() => router.push("/patient-dashboard/scans")}
+                        className="text-brand-indigo hover:text-brand-lavender text-xs font-bold"
+                      >
+                        View All
+                      </button>
+                    </div>
+
+                    {scans.length === 0 ? (
+                      <div className="text-center py-4 bg-brand-surface/30 rounded-xl border border-dashed border-brand-border">
+                        <p className="text-brand-muted text-xs font-medium">
+                          No scans recorded yet.
+                        </p>
+                      </div>
+                    ) : (
+                      <div className="space-y-2">
+                        {scans.slice(0, 3).map((scan) => (
+                          <div
+                            key={scan.id}
+                            className="flex items-center justify-between p-3 bg-brand-surface/40 rounded-xl border border-brand-border/50"
+                          >
+                            <div className="flex items-center space-x-3">
+                              <div className="w-8 h-8 rounded-lg bg-slate-900 flex items-center justify-center overflow-hidden flex-shrink-0">
+                                {scan.image_url ? (
+                                  <img
+                                    src={scan.image_url}
+                                    alt="scan"
+                                    className="w-full h-full object-cover"
+                                  />
+                                ) : (
+                                  <Activity className="w-4 h-4 text-brand-muted" />
+                                )}
+                              </div>
+                              <div>
+                                <span className="text-xs font-bold text-brand-navy block">
+                                  {new Date(scan.created_at).toLocaleDateString("en-US", { year: "numeric", month: "short", day: "numeric" })}
+                                </span>
+                                <span className="text-[10px] text-brand-muted font-medium">
+                                  Confidence: {(scan.confidence * 100).toFixed(1)}%
+                                </span>
+                              </div>
+                            </div>
+                            <span
+                              className={`px-2 py-0.5 rounded-full text-[10px] font-bold border ${
+                                scan.result === "Normal"
+                                  ? "bg-emerald-50 text-emerald-700 border-emerald-200"
+                                  : "bg-red-50 text-red-700 border-red-200"
+                              }`}
+                            >
+                              {scan.result}
+                            </span>
+                          </div>
+                        ))}
+                      </div>
+                    )}
+                  </div>
+
+                  {/* Previous Prescriptions */}
+                  <div className="mt-6 pt-5 border-t border-brand-border/60">
+                    <div className="flex justify-between items-center mb-3">
+                      <h4 className="text-sm font-bold text-brand-navy flex items-center space-x-2">
+                        <FileText className="w-4 h-4 text-brand-teal" />
+                        <span>Prescriptions</span>
+                      </h4>
+                      <button
+                        onClick={() => router.push("/patient-dashboard/prescriptions")}
+                        className="text-brand-indigo hover:text-brand-lavender text-xs font-bold"
+                      >
+                        View All
+                      </button>
+                    </div>
+
+                    {prescriptions.length === 0 ? (
+                      <div className="text-center py-4 bg-brand-surface/30 rounded-xl border border-dashed border-brand-border">
+                        <p className="text-brand-muted text-xs font-medium">
+                          No prescriptions issued yet.
+                        </p>
+                      </div>
+                    ) : (
+                      <div className="space-y-2">
+                        {prescriptions.slice(0, 3).map((pres) => (
+                          <div
+                            key={pres.id}
+                            className="p-3 bg-brand-surface/40 rounded-xl border border-brand-border/50"
+                          >
+                            <div className="flex justify-between items-start">
+                              <span className="text-xs font-bold text-brand-navy">
+                                {pres.medication}
+                              </span>
+                              <span className="text-[10px] text-brand-muted font-bold flex-shrink-0 ml-2">
+                                {new Date(pres.date_issued).toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" })}
+                              </span>
+                            </div>
+                            <p className="text-[11px] text-brand-muted mt-0.5 font-medium">
+                              Dosage: {pres.dosage}
+                            </p>
+                          </div>
+                        ))}
+                      </div>
+                    )}
+                  </div>
                 </div>
               </div>
+
 
               {/* Middle and Right Column: Scan History & Hospital Recommendations */}
               <div className="lg:col-span-2 space-y-8">
@@ -743,11 +853,10 @@ export default function PatientDashboard() {
                             )}
                             <div className="absolute top-3 right-3">
                               <span
-                                className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-bold border ${
-                                  scan.result === "Normal"
-                                    ? "bg-emerald-500/10 text-emerald-500 border-emerald-500/20"
-                                    : "bg-red-500/10 text-red-500 border-red-500/20"
-                                }`}
+                                className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-bold border ${scan.result === "Normal"
+                                  ? "bg-emerald-500/10 text-emerald-500 border-emerald-500/20"
+                                  : "bg-red-500/10 text-red-500 border-red-500/20"
+                                  }`}
                               >
                                 {scan.result}
                               </span>
@@ -910,11 +1019,10 @@ export default function PatientDashboard() {
                         <div>
                           <div className="flex justify-between items-start mb-2">
                             <span
-                              className={`inline-flex items-center px-2 py-0.5 rounded text-[10px] font-extrabold border ${
-                                hospital.open
-                                  ? "bg-emerald-50 text-emerald-700 border-emerald-200"
-                                  : "bg-rose-50 text-rose-700 border-rose-200"
-                              }`}
+                              className={`inline-flex items-center px-2 py-0.5 rounded text-[10px] font-extrabold border ${hospital.open
+                                ? "bg-emerald-50 text-emerald-700 border-emerald-200"
+                                : "bg-rose-50 text-rose-700 border-rose-200"
+                                }`}
                             >
                               {hospital.status}
                             </span>
@@ -971,7 +1079,7 @@ export default function PatientDashboard() {
               <div className="p-2 bg-emerald-500/10 rounded-full">
                 <ShieldCheck className="w-5 h-5 text-brand-teal" />
               </div>
-              <div>
+              {/* <div>
                 <h4 className="font-bold text-brand-navy text-sm">
                   HIPAA Secure Portal
                 </h4>
@@ -979,7 +1087,7 @@ export default function PatientDashboard() {
                   All clinical scans and radiograph files are protected by
                   AES-256 state database encryption.
                 </p>
-              </div>
+              </div> */}
             </div>
             <div className="text-xs text-brand-muted font-semibold flex items-center space-x-1">
               <Stethoscope className="w-4 h-4 text-brand-indigo" />

@@ -41,14 +41,17 @@ export function Sidebar() {
 
   return (
     <aside className="w-64 bg-brand-white border-r border-brand-border h-screen flex flex-col fixed left-0 top-0">
-      <div className="p-6 flex items-center space-x-3 border-b border-brand-border">
+      <Link
+        href={role === "doctor" ? "/doctor-dashboard" : "/patient-dashboard"}
+        className="p-6 flex items-center space-x-3 border-b border-brand-border hover:bg-brand-surface transition-colors"
+      >
         <div className="p-2 bg-brand-indigo/10 rounded-xl">
           <Activity className="w-6 h-6 text-brand-indigo" />
         </div>
         <span className="font-bold text-brand-navy tracking-tight text-xl">
           Pneumonix
         </span>
-      </div>
+      </Link>
 
       <div className="p-4 flex-1 overflow-y-auto">
         <p className="text-xs font-semibold text-brand-muted uppercase tracking-wider mb-4 px-3">
@@ -58,16 +61,15 @@ export function Sidebar() {
           {navItems.map((item) => {
             const isActive = pathname === item.href;
             const Icon = item.icon;
-            
+
             return (
               <Link
                 key={item.name}
                 href={item.href}
-                className={`flex items-center space-x-3 px-3 py-2.5 rounded-lg transition-colors font-medium text-sm ${
-                  isActive
+                className={`flex items-center space-x-3 px-3 py-2.5 rounded-lg transition-colors font-medium text-sm ${isActive
                     ? "bg-brand-indigo text-brand-white shadow-soft"
                     : "text-brand-navy hover:bg-brand-surface hover:text-brand-indigo"
-                }`}
+                  }`}
               >
                 <Icon className={`w-5 h-5 ${isActive ? "text-brand-white" : "text-brand-muted"}`} />
                 <span>{item.name}</span>
@@ -77,13 +79,13 @@ export function Sidebar() {
         </nav>
       </div>
 
-      <div className="p-4 border-t border-brand-border">
+      {/* <div className="p-4 border-t border-brand-border">
         <div className="bg-brand-surface rounded-xl p-4 flex flex-col items-center text-center">
           <ShieldCheck className="w-8 h-8 text-brand-teal mb-2" />
           <h4 className="text-sm font-semibold text-brand-navy mb-1">HIPAA Compliant</h4>
           <p className="text-xs text-brand-muted">Secure diagnostic storage</p>
         </div>
-      </div>
+      </div> */}
     </aside>
   );
 }

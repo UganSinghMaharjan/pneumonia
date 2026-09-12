@@ -23,10 +23,10 @@ export function Topbar({ username, onLogout }: { username: string | null; onLogo
       </div>
 
       <div className="flex items-center space-x-6 ml-4">
-        <button className="relative p-2 text-brand-muted hover:text-brand-indigo transition-colors rounded-full hover:bg-brand-surface">
+        {/* <button className="relative p-2 text-brand-muted hover:text-brand-indigo transition-colors rounded-full hover:bg-brand-surface">
           <Bell className="w-5 h-5" />
           <span className="absolute top-1.5 right-1.5 w-2 h-2 bg-brand-teal rounded-full border-2 border-brand-white"></span>
-        </button>
+        </button> */}
 
         <div className="h-8 w-px bg-brand-border"></div>
 
@@ -40,7 +40,7 @@ export function Topbar({ username, onLogout }: { username: string | null; onLogo
           <div className="w-9 h-9 rounded-full bg-brand-indigo/10 flex items-center justify-center border border-brand-indigo/20">
             <User className="w-4 h-4 text-brand-indigo" />
           </div>
-          
+
           <button
             onClick={onLogout}
             className="ml-2 p-2 text-brand-muted hover:text-brand-indigo transition-colors rounded-full hover:bg-brand-surface"

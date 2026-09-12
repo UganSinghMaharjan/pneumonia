@@ -40,6 +40,13 @@ function AppointmentsContent() {
 
   const [appointments, setAppointments] = useState<AppointmentRecord[]>([]);
 
+  // Minimum selectable date = tomorrow (today and past dates are not allowed)
+  const tomorrow = (() => {
+    const d = new Date();
+    d.setDate(d.getDate() + 1);
+    return d.toISOString().split("T")[0];
+  })();
+
   // Booking Form State
   const [form, setForm] = useState({
     requested_date: "",
@@ -242,6 +249,7 @@ function AppointmentsContent() {
                       <input
                         type="date"
                         required
+                        min={tomorrow}
                         value={form.requested_date}
                         onChange={(e) =>
                           setForm({ ...form, requested_date: e.target.value })

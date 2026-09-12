@@ -276,10 +276,10 @@ export default function PatientSettingsPage() {
                 </div>
 
                 <div className="border-t border-brand-border/60 pt-6 flex justify-between items-center">
-                  <div className="flex items-center space-x-2 text-xs text-brand-muted">
+                  {/* <div className="flex items-center space-x-2 text-xs text-brand-muted">
                     <Shield className="w-4 h-4 text-brand-teal" />
                     <span>Your clinical data remains secure.</span>
-                  </div>
+                  </div> */}
 
                   <button
                     type="submit"
