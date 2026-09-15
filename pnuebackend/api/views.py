@@ -228,6 +228,27 @@ class PatientListView(APIView):
             })
         return Response(data, status=status.HTTP_200_OK)
 
+def is_grayscale(image_input, color_threshold=15.0):
+    """
+    Checks if an uploaded image is grayscale-like.
+    Chest X-rays are monochrome (R, G, and B channel values per pixel are nearly identical).
+    """
+    if isinstance(image_input, Image.Image):
+        img_arr = np.array(image_input.convert('RGB'), dtype=np.float32)
+    elif isinstance(image_input, np.ndarray):
+        img_arr = image_input
+        if len(img_arr.shape) == 2 or (len(img_arr.shape) == 3 and img_arr.shape[2] == 1):
+            return True
+    else:
+        return True
+
+    r, g, b = img_arr[:, :, 0], img_arr[:, :, 1], img_arr[:, :, 2]
+    diff_rg = np.abs(r - g)
+    diff_rb = np.abs(r - b)
+    diff_gb = np.abs(g - b)
+    mean_diff = np.mean((diff_rg + diff_rb + diff_gb) / 3.0)
+    return mean_diff < color_threshold
+
 class PredictView(APIView):
     authentication_classes = [TokenAuthentication]
     permission_classes = [IsAuthenticated]
@@ -257,6 +278,17 @@ class PredictView(APIView):
         try:
             # Read and process image
             image = Image.open(file).convert('RGB')
+            
+            # Gatekeeper Check 1: Grayscale / X-ray verification
+            if not is_grayscale(image):
+                return Response({
+                    'status': 'rejected',
+                    'predicted_class': 'Rejected',
+                    'confidence': 0.0,
+                    'probabilities': {'Normal': 0.0, 'Pneumonia': 0.0},
+                    'message': 'Uploaded file is a color picture and does not appear to be a valid grayscale chest X-ray radiograph.'
+                }, status=status.HTTP_200_OK)
+
             image_resized = image.resize((IMG_WIDTH, IMG_HEIGHT))
             img_array = np.array(image_resized)
             img_array = img_array / 255.0
@@ -286,6 +318,11 @@ class PredictView(APIView):
                 'Normal': prob_normal,
                 'Pneumonia': prob_pneumonia
             }
+
+            # Gatekeeper Check 2: Confidence Thresholding (threshold = 0.85)
+            CONFIDENCE_THRESHOLD = 0.85
+            if confidence < CONFIDENCE_THRESHOLD:
+                predicted_class = 'Uncertain'
 
             # Create Scan record in database
             scan = Scan.objects.create(
