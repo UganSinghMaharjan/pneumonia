@@ -68,7 +68,7 @@ export default function DoctorDashboard() {
 
     if (!storedToken) {
       router.push("/login");
-    } else if (storedRole !== "doctor") {
+    } else if (storedRole === "patient") {
       router.push("/patient-dashboard");
     } else {
       setToken(storedToken);
@@ -324,7 +324,7 @@ export default function DoctorDashboard() {
 
                         {/* Drag and Drop File Input */}
                         <div
-                          className={`border-2 border-dashed rounded-xl p-8 text-center transition-all duration-200 flex flex-col items-center justify-center min-h-[160px] ${
+                          className={`border-2 border-dashed rounded-xl p-8 text-center transition-all duration-200 flex flex-col items-center justify-center min-h-40 ${
                             preview
                               ? "border-brand-indigo bg-brand-indigo/5"
                               : "border-brand-border bg-brand-surface/30 hover:border-brand-lavender hover:bg-brand-lavender/5"
@@ -443,7 +443,7 @@ export default function DoctorDashboard() {
 
                     {error && (
                       <div className="p-4 bg-rose-50 border border-rose-200 rounded-lg text-rose-700 flex items-start space-x-3">
-                        <AlertCircle className="w-5 h-5 flex-shrink-0 mt-0.5" />
+                        <AlertCircle className="w-5 h-5 shrink-0 mt-0.5" />
                         <p className="text-xs font-semibold">{error}</p>
                       </div>
                     )}

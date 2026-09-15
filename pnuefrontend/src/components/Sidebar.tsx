@@ -10,7 +10,9 @@ import {
   Settings,
   ShieldCheck,
   FileText,
-  Clock
+  Clock,
+  UserCheck,
+  Stethoscope
 } from "lucide-react";
 
 export function Sidebar() {
@@ -20,6 +22,13 @@ export function Sidebar() {
   useEffect(() => {
     setRole(localStorage.getItem("role") || "patient");
   }, []);
+
+  const adminItems = [
+    { name: "Overview Dashboard", href: "/admin-dashboard", icon: LayoutDashboard },
+    { name: "Manage Doctors", href: "/admin-dashboard/doctors", icon: Stethoscope },
+    { name: "Manage Patients", href: "/admin-dashboard/patients", icon: Users },
+    { name: "View Scans", href: "/admin-dashboard/scans", icon: Activity },
+  ];
 
   const doctorItems = [
     { name: "Dashboard", href: "/doctor-dashboard", icon: LayoutDashboard },
@@ -37,12 +46,13 @@ export function Sidebar() {
     { name: "Settings", href: "/patient-dashboard/settings", icon: Settings },
   ];
 
-  const navItems = role === "doctor" ? doctorItems : patientItems;
+  const navItems = role === "admin" ? adminItems : role === "doctor" ? doctorItems : patientItems;
+  const brandHref = role === "admin" ? "/admin-dashboard" : role === "doctor" ? "/doctor-dashboard" : "/patient-dashboard";
 
   return (
     <aside className="w-64 bg-brand-white border-r border-brand-border h-screen flex flex-col fixed left-0 top-0">
       <Link
-        href={role === "doctor" ? "/doctor-dashboard" : "/patient-dashboard"}
+        href={brandHref}
         className="p-6 flex items-center space-x-3 border-b border-brand-border hover:bg-brand-surface transition-colors"
       >
         <div className="p-2 bg-brand-indigo/10 rounded-xl">

@@ -13,6 +13,8 @@ export default function Home() {
 
     if (!token) {
       router.push("/login");
+    } else if (role === "admin") {
+      router.push("/admin-dashboard");
     } else if (role === "doctor") {
       router.push("/doctor-dashboard");
     } else {

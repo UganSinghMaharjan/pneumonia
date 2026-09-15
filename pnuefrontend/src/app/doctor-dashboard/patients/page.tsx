@@ -110,7 +110,7 @@ export default function DoctorPatientsPage() {
 
     if (!storedToken) {
       router.push("/login");
-    } else if (storedRole !== "doctor") {
+    } else if (storedRole === "patient") {
       router.push("/patient-dashboard");
     } else {
       setToken(storedToken);
@@ -316,7 +316,7 @@ export default function DoctorPatientsPage() {
                       placeholder="Search patient name..."
                       value={searchQuery}
                       onChange={(e) => setSearchQuery(e.target.value)}
-                      className="w-full bg-brand-surface border border-transparent rounded-lg py-2 pl-9 pr-4 text-xs text-brand-navy focus:outline-none focus:ring-1 focus:ring-brand-indigo w-full"
+                      className="w-full bg-brand-surface border border-transparent rounded-lg py-2 pl-9 pr-4 text-xs text-brand-navy focus:outline-none focus:ring-1 focus:ring-brand-indigo"
                     />
                   </div>
                 </div>
@@ -335,7 +335,7 @@ export default function DoctorPatientsPage() {
                             : "hover:bg-brand-surface/40 border-l-4 border-transparent"
                         }`}
                       >
-                        <div className="w-9 h-9 rounded-full bg-brand-indigo/10 flex items-center justify-center border border-brand-indigo/20 flex-shrink-0">
+                        <div className="w-9 h-9 rounded-full bg-brand-indigo/10 flex items-center justify-center border border-brand-indigo/20 shrink-0">
                           <span className="font-bold text-brand-indigo text-sm uppercase">
                             {name ? name[0] : p.email[0]}
                           </span>
@@ -494,7 +494,7 @@ export default function DoctorPatientsPage() {
                                         </p>
                                       )}
                                       {hist.notes && (
-                                        <p className="text-xs text-brand-muted bg-brand-white border border-brand-border/60 p-2.5 rounded-lg italic mt-1 font-semibold break-words">
+                                         <p className="text-xs text-brand-muted bg-brand-white border border-brand-border/60 p-2.5 rounded-lg italic mt-1 font-semibold wrap-break-word">
                                           "{hist.notes}"
                                         </p>
                                       )}
@@ -650,7 +650,7 @@ export default function DoctorPatientsPage() {
                                           {(scan.confidence * 100).toFixed(1)}%
                                         </span>
                                       </div>
-                                      <p className="text-xs text-brand-navy border-t border-brand-border/40 pt-2 break-words italic">
+                                       <p className="text-xs text-brand-navy border-t border-brand-border/40 pt-2 wrap-break-word italic">
                                         {scan.doctor_remarks
                                           ? `"${scan.doctor_remarks}"`
                                           : "Remarks pending clinician clinical notes."}

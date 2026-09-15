@@ -5,18 +5,20 @@ import { useRouter } from "next/navigation";
 import axios from "axios";
 import { Sidebar } from "@/components/Sidebar";
 import { Topbar } from "@/components/Topbar";
+import { downloadDiagnosticReport } from "@/utils/downloadReport";
 import {
-  Search,
+  FileImage,
   Loader2,
   Calendar,
   Percent,
   CheckCircle,
   AlertCircle,
   Edit2,
+  Trash2,
   Check,
   X,
-  FileImage,
-  Trash2,
+  Search,
+  Download
 } from "lucide-react";
 
 interface ScanRecord {
@@ -59,7 +61,7 @@ export default function DoctorScansPage() {
 
     if (!storedToken) {
       router.push("/login");
-    } else if (storedRole !== "doctor") {
+    } else if (storedRole === "patient") {
       router.push("/patient-dashboard");
     } else {
       setToken(storedToken);
@@ -121,6 +123,36 @@ export default function DoctorScansPage() {
       alert("Failed to delete scan. Please try again.");
     } finally {
       setDeleteLoading(false);
+    }
+  };
+
+  const handleDownloadReport = async (scan: ScanRecord) => {
+    try {
+      let prescriptions = [];
+      if (token) {
+        try {
+          const res = await axios.get(`/backend/prescriptions/?patient_id=${scan.patient_id}`, {
+            headers: { Authorization: `Token ${token}` },
+          });
+          prescriptions = res.data;
+        } catch (e) {
+          console.error("Prescription fetch error", e);
+        }
+      }
+
+      downloadDiagnosticReport({
+        patient_name: scan.patient_name,
+        patient_email: scan.patient_email,
+        scan_id: scan.id,
+        scan_result: scan.result,
+        scan_confidence: scan.confidence,
+        scan_image_url: scan.image_url,
+        scan_date: scan.created_at,
+        doctor_remarks: scan.doctor_remarks,
+        prescriptions: prescriptions
+      });
+    } catch (err) {
+      alert("Failed to generate report download.");
     }
   };
 
@@ -273,9 +305,9 @@ export default function DoctorScansPage() {
                       <div className="flex justify-between items-center mb-1.5">
                         <h4 className="text-xs font-bold text-brand-navy flex items-center space-x-1.5">
                           {scan.result === "Normal" ? (
-                            <CheckCircle className="w-4 h-4 text-brand-teal flex-shrink-0" />
+                            <CheckCircle className="w-4 h-4 text-brand-teal shrink-0" />
                           ) : (
-                            <AlertCircle className="w-4 h-4 text-rose-500 flex-shrink-0" />
+                            <AlertCircle className="w-4 h-4 text-rose-500 shrink-0" />
                           )}
                           <span>Clinician Remarks</span>
                         </h4>
@@ -369,12 +401,20 @@ export default function DoctorScansPage() {
                           </div>
                         </div>
                       ) : (
-                        <p className="text-xs text-brand-navy bg-brand-surface/40 rounded-lg p-3 italic break-words leading-relaxed">
+                        <p className="text-xs text-brand-navy bg-brand-surface/40 rounded-lg p-3 italic wrap-break-word leading-relaxed">
                           {scan.doctor_remarks
                             ? `"${scan.doctor_remarks}"`
                             : "Remarks pending clinician clinical notes."}
                         </p>
                       )}
+
+                      <button
+                        onClick={() => handleDownloadReport(scan)}
+                        className="mt-3 w-full py-2 bg-brand-teal/10 hover:bg-brand-teal text-brand-teal hover:text-white rounded-lg text-xs font-bold transition-all flex items-center justify-center space-x-1.5"
+                      >
+                        <Download className="w-3.5 h-3.5" />
+                        <span>Download Report & Prescription</span>
+                      </button>
                     </div>
                   </div>
                 </div>

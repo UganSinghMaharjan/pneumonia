@@ -18,7 +18,7 @@ export default function DoctorSettingsPage() {
 
     if (!storedToken) {
       router.push("/login");
-    } else if (storedRole !== "doctor") {
+    } else if (storedRole === "patient") {
       router.push("/patient-dashboard");
     } else {
       setUsername(storedUsername);

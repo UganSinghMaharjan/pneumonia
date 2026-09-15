@@ -5,10 +5,16 @@ import { useRouter } from "next/navigation";
 import axios from "axios";
 import { Sidebar } from "@/components/Sidebar";
 import { Topbar } from "@/components/Topbar";
+import { downloadDiagnosticReport } from "@/utils/downloadReport";
 import {
   FileText,
-  Calendar,
   Loader2,
+  Pill,
+  Calendar,
+  Clock,
+  User,
+  Stethoscope,
+  Download,
   Bookmark,
   Activity,
   Heart,
@@ -63,6 +69,58 @@ export default function PatientPrescriptionsPage() {
       console.error("Failed to fetch prescriptions", err);
     } finally {
       setLoading(false);
+    }
+  };
+
+  const handleDownloadPrescriptionReport = async (pres: PrescriptionRecord) => {
+    try {
+      let profile = null;
+      let scans = [];
+      if (token) {
+        try {
+          const profRes = await axios.get("/backend/user", {
+            headers: { Authorization: `Token ${token}` },
+          });
+          profile = profRes.data;
+        } catch (e) {}
+
+        try {
+          const scansRes = await axios.get("/backend/scans", {
+            headers: { Authorization: `Token ${token}` },
+          });
+          scans = scansRes.data;
+        } catch (e) {}
+      }
+
+      const latestScan = scans.length > 0 ? scans[0] : null;
+
+      downloadDiagnosticReport({
+        patient_name: profile
+          ? `${profile.first_name} ${profile.last_name}`.trim() || profile.email
+          : username || "Patient Record",
+        patient_email: profile?.email || username || "",
+        patient_age: profile?.age,
+        patient_gender: profile?.gender,
+        patient_blood_group: profile?.blood_group,
+        patient_contact: profile?.contact_number,
+        scan_id: latestScan?.id || "N/A",
+        scan_result: latestScan?.result || "Normal / Prescribed Protocol",
+        scan_confidence: latestScan?.confidence || 1.0,
+        scan_image_url: latestScan?.image_url,
+        scan_date: pres.date_issued,
+        doctor_remarks: pres.doctor_notes || "Prescription record issued by attending physician.",
+        prescriptions: [
+          {
+            medication: pres.medication,
+            dosage: pres.dosage,
+            instructions: pres.instructions,
+            doctor_notes: pres.doctor_notes,
+            date_issued: pres.date_issued,
+          },
+        ],
+      });
+    } catch (err) {
+      alert("Failed to generate report download.");
     }
   };
 
@@ -139,7 +197,7 @@ export default function PatientPrescriptionsPage() {
                     </div>
 
                     <div className="bg-brand-surface/40 p-4 rounded-xl border border-brand-border/40 text-sm">
-                      <span className="block text-xs font-bold text-brand-navy mb-1 flex items-center space-x-1">
+                      <span className="text-xs font-bold text-brand-navy mb-1 flex items-center space-x-1">
                         <Bookmark className="w-4 h-4 text-brand-indigo" />
                         <span>Attending Guidelines</span>
                       </span>
@@ -168,12 +226,21 @@ export default function PatientPrescriptionsPage() {
                       </span>
                     </div>
 
-                    <div className="text-xs text-brand-muted font-semibold flex items-center space-x-1 mt-4 md:mt-0">
-                      <Calendar className="w-4 h-4 text-brand-muted" />
-                      <span>
-                        Issued:{" "}
-                        {new Date(pres.date_issued).toLocaleDateString()}
-                      </span>
+                    <div className="flex flex-col items-start md:items-end space-y-2 mt-4 md:mt-0">
+                      <div className="text-xs text-brand-muted font-semibold flex items-center space-x-1">
+                        <Calendar className="w-4 h-4 text-brand-muted" />
+                        <span>
+                          Issued:{" "}
+                          {new Date(pres.date_issued).toLocaleDateString()}
+                        </span>
+                      </div>
+                      <button
+                        onClick={() => handleDownloadPrescriptionReport(pres)}
+                        className="px-3 py-1.5 bg-brand-teal/10 hover:bg-brand-teal text-brand-teal hover:text-white rounded-lg text-xs font-bold transition-all flex items-center space-x-1.5"
+                      >
+                        <Download className="w-3.5 h-3.5" />
+                        <span>Download Scan & Prescription PDF</span>
+                      </button>
                     </div>
                   </div>
                 </div>

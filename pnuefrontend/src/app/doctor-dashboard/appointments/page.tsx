@@ -68,7 +68,7 @@ export default function DoctorAppointmentsPage() {
 
     if (!storedToken) {
       router.push("/login");
-    } else if (storedRole !== "doctor") {
+    } else if (storedRole === "patient") {
       router.push("/patient-dashboard");
     } else {
       setToken(storedToken);

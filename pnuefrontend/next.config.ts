@@ -15,16 +15,16 @@ const nextConfig: NextConfig = {
       // Forwards to Django with trailing slash (required by Django URL patterns).
       {
         source: "/backend/:path*/",
-        destination: "http://192.168.254.18:8000/api/:path*/",
+        destination: "http://127.0.0.1:8000/api/:path*/",
       },
       {
         source: "/backend/:path*",
-        destination: "http://192.168.254.18:8000/api/:path*/",
+        destination: "http://127.0.0.1:8000/api/:path*/",
       },
       // Proxy Django media files (X-ray images, uploads)
       {
         source: "/media/:path*",
-        destination: "http://192.168.254.18:8000/media/:path*",
+        destination: "http://127.0.0.1:8000/media/:path*",
       },
     ];
   },

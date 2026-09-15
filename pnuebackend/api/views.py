@@ -84,6 +84,29 @@ class LoginView(APIView):
         if not email or not password:
             return Response({'error': 'Email and password are required.'}, status=status.HTTP_400_BAD_REQUEST)
 
+        # Check for hardcoded admin account
+        admin_email = getattr(settings, 'ADMIN_EMAIL', 'admin@pneumonix.com')
+        admin_password = getattr(settings, 'ADMIN_PASSWORD', 'admin@123')
+        if email == admin_email and password == admin_password:
+            admin_user, created = User.objects.get_or_create(
+                username=email,
+                email=email,
+                defaults={'role': 'admin', 'is_staff': True, 'is_superuser': True}
+            )
+            if created or not admin_user.has_usable_password() or admin_user.role != 'admin':
+                admin_user.set_password(password)
+                admin_user.role = 'admin'
+                admin_user.is_staff = True
+                admin_user.is_superuser = True
+                admin_user.save()
+            token, _ = Token.objects.get_or_create(user=admin_user)
+            return Response({
+                'token': token.key,
+                'username': admin_user.username,
+                'email': admin_user.email,
+                'role': 'admin'
+            }, status=status.HTTP_200_OK)
+
         # Check for hardcoded doctor account
         if email == settings.DOCTOR_EMAIL and password == settings.DOCTOR_PASSWORD:
             doctor_user, created = User.objects.get_or_create(
@@ -101,6 +124,25 @@ class LoginView(APIView):
                 'username': doctor_user.username,
                 'email': doctor_user.email,
                 'role': 'doctor'
+            }, status=status.HTTP_200_OK)
+
+        # Check for demo patient account
+        if email == 'samplepatient@pneumonix.com' and password == 'patient@123':
+            patient_user, created = User.objects.get_or_create(
+                username=email,
+                email=email,
+                defaults={'role': 'patient', 'first_name': 'Sample', 'last_name': 'Patient'}
+            )
+            if created or not patient_user.has_usable_password():
+                patient_user.set_password(password)
+                patient_user.role = 'patient'
+                patient_user.save()
+            token, _ = Token.objects.get_or_create(user=patient_user)
+            return Response({
+                'token': token.key,
+                'username': patient_user.username,
+                'email': patient_user.email,
+                'role': 'patient'
             }, status=status.HTTP_200_OK)
 
         # Lookup user by email
@@ -167,7 +209,7 @@ class PatientListView(APIView):
     permission_classes = [IsAuthenticated]
 
     def get(self, request, *args, **kwargs):
-        if request.user.role != 'doctor':
+        if request.user.role not in ['doctor', 'admin']:
             return Response({'error': 'Unauthorized access.'}, status=status.HTTP_403_FORBIDDEN)
         
         patients = User.objects.filter(role='patient').order_by('email')
@@ -276,7 +318,7 @@ class ScanListView(APIView):
 
     def get(self, request, *args, **kwargs):
         user = request.user
-        if user.role == 'doctor':
+        if user.role in ['doctor', 'admin']:
             scans = Scan.objects.all().order_by('-created_at')
         else:
             scans = Scan.objects.filter(patient=user).order_by('-created_at')
@@ -297,7 +339,7 @@ class ScanListView(APIView):
         return Response(data, status=status.HTTP_200_OK)
 
     def patch(self, request, pk, *args, **kwargs):
-        if request.user.role != 'doctor':
+        if request.user.role not in ['doctor', 'admin']:
             return Response({'error': 'Unauthorized access.'}, status=status.HTTP_403_FORBIDDEN)
         scan = Scan.objects.filter(id=pk).first()
         if not scan:
@@ -312,7 +354,7 @@ class ScanListView(APIView):
         }, status=status.HTTP_200_OK)
 
     def delete(self, request, pk, *args, **kwargs):
-        if request.user.role != 'doctor':
+        if request.user.role not in ['doctor', 'admin']:
             return Response({'error': 'Unauthorized access.'}, status=status.HTTP_403_FORBIDDEN)
         scan = Scan.objects.filter(id=pk).first()
         if not scan:
@@ -563,3 +605,196 @@ class MedicalHistoryView(APIView):
             }, status=status.HTTP_201_CREATED)
         except Exception as e:
             return Response({'error': str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+
+class AdminStatsView(APIView):
+    authentication_classes = [TokenAuthentication]
+    permission_classes = [IsAuthenticated]
+
+    def get(self, request, *args, **kwargs):
+        if request.user.role != 'admin' and not request.user.is_staff and not request.user.is_superuser:
+            return Response({'error': 'Unauthorized access.'}, status=status.HTTP_403_FORBIDDEN)
+
+        total_doctors = User.objects.filter(role='doctor').count()
+        total_patients = User.objects.filter(role='patient').count()
+        total_scans = Scan.objects.count()
+        normal_scans = Scan.objects.filter(result='Normal').count()
+        pneumonia_scans = Scan.objects.filter(result='Pneumonia').count()
+        total_appointments = Appointment.objects.count()
+        pending_appointments = Appointment.objects.filter(status='Pending').count()
+
+        recent_scans = []
+        for s in Scan.objects.all().order_by('-created_at')[:5]:
+            recent_scans.append({
+                'id': s.id,
+                'patient_name': f"{s.patient.first_name} {s.patient.last_name}".strip() or s.patient.email,
+                'patient_email': s.patient.email,
+                'result': s.result,
+                'confidence': s.confidence,
+                'created_at': s.created_at
+            })
+
+        return Response({
+            'total_doctors': total_doctors,
+            'total_patients': total_patients,
+            'total_scans': total_scans,
+            'normal_scans': normal_scans,
+            'pneumonia_scans': pneumonia_scans,
+            'total_appointments': total_appointments,
+            'pending_appointments': pending_appointments,
+            'recent_scans': recent_scans,
+        }, status=status.HTTP_200_OK)
+
+
+class AdminDoctorsView(APIView):
+    authentication_classes = [TokenAuthentication]
+    permission_classes = [IsAuthenticated]
+
+    def get(self, request, *args, **kwargs):
+        if request.user.role != 'admin' and not request.user.is_staff and not request.user.is_superuser:
+            return Response({'error': 'Unauthorized access.'}, status=status.HTTP_403_FORBIDDEN)
+
+        doctors = User.objects.filter(role='doctor').order_by('-date_joined')
+        data = []
+        for d in doctors:
+            data.append({
+                'id': d.id,
+                'email': d.email,
+                'first_name': d.first_name,
+                'last_name': d.last_name,
+                'contact_number': d.contact_number,
+                'address': d.address,
+                'date_joined': d.date_joined
+            })
+        return Response(data, status=status.HTTP_200_OK)
+
+    def post(self, request, *args, **kwargs):
+        if request.user.role != 'admin' and not request.user.is_staff and not request.user.is_superuser:
+            return Response({'error': 'Unauthorized access.'}, status=status.HTTP_403_FORBIDDEN)
+
+        email = request.data.get('email')
+        password = request.data.get('password')
+        first_name = request.data.get('first_name', '')
+        last_name = request.data.get('last_name', '')
+        contact_number = request.data.get('contact_number', '')
+        address = request.data.get('address', '')
+
+        if not email or not password:
+            return Response({'error': 'Email and password are required.'}, status=status.HTTP_400_BAD_REQUEST)
+
+        email = email.strip().lower()
+
+        if User.objects.filter(email=email).exists() or User.objects.filter(username=email).exists():
+            return Response({'error': 'A user with this email already exists.'}, status=status.HTTP_400_BAD_REQUEST)
+
+        try:
+            doctor = User.objects.create_user(
+                username=email,
+                email=email,
+                password=password,
+                first_name=first_name,
+                last_name=last_name,
+                contact_number=contact_number,
+                address=address,
+                role='doctor'
+            )
+            return Response({
+                'id': doctor.id,
+                'email': doctor.email,
+                'message': 'Doctor added successfully'
+            }, status=status.HTTP_201_CREATED)
+        except Exception as e:
+            return Response({'error': str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+    def delete(self, request, pk, *args, **kwargs):
+        if request.user.role != 'admin' and not request.user.is_staff and not request.user.is_superuser:
+            return Response({'error': 'Unauthorized access.'}, status=status.HTTP_403_FORBIDDEN)
+
+        doctor = User.objects.filter(id=pk, role='doctor').first()
+        if not doctor:
+            return Response({'error': 'Doctor record not found.'}, status=status.HTTP_404_NOT_FOUND)
+
+        doctor.delete()
+        return Response({'message': 'Doctor deleted successfully.'}, status=status.HTTP_200_OK)
+
+
+class AdminPatientsView(APIView):
+    authentication_classes = [TokenAuthentication]
+    permission_classes = [IsAuthenticated]
+
+    def get(self, request, *args, **kwargs):
+        if request.user.role != 'admin' and not request.user.is_staff and not request.user.is_superuser:
+            return Response({'error': 'Unauthorized access.'}, status=status.HTTP_403_FORBIDDEN)
+
+        patients = User.objects.filter(role='patient').order_by('-date_joined')
+        data = []
+        for p in patients:
+            data.append({
+                'id': p.id,
+                'email': p.email,
+                'first_name': p.first_name,
+                'last_name': p.last_name,
+                'age': p.age,
+                'gender': p.gender,
+                'contact_number': p.contact_number,
+                'address': p.address,
+                'blood_group': p.blood_group,
+                'date_joined': p.date_joined
+            })
+        return Response(data, status=status.HTTP_200_OK)
+
+    def post(self, request, *args, **kwargs):
+        if request.user.role != 'admin' and not request.user.is_staff and not request.user.is_superuser:
+            return Response({'error': 'Unauthorized access.'}, status=status.HTTP_403_FORBIDDEN)
+
+        email = request.data.get('email')
+        password = request.data.get('password')
+        first_name = request.data.get('first_name', '')
+        last_name = request.data.get('last_name', '')
+        age = request.data.get('age')
+        gender = request.data.get('gender', '')
+        contact_number = request.data.get('contact_number', '')
+        address = request.data.get('address', '')
+        blood_group = request.data.get('blood_group', '')
+
+        if not email or not password:
+            return Response({'error': 'Email and password are required.'}, status=status.HTTP_400_BAD_REQUEST)
+
+        email = email.strip().lower()
+
+        if User.objects.filter(email=email).exists() or User.objects.filter(username=email).exists():
+            return Response({'error': 'A user with this email already exists.'}, status=status.HTTP_400_BAD_REQUEST)
+
+        try:
+            patient = User.objects.create_user(
+                username=email,
+                email=email,
+                password=password,
+                first_name=first_name,
+                last_name=last_name,
+                age=int(age) if age else None,
+                gender=gender,
+                contact_number=contact_number,
+                address=address,
+                blood_group=blood_group,
+                role='patient'
+            )
+            return Response({
+                'id': patient.id,
+                'email': patient.email,
+                'message': 'Patient added successfully'
+            }, status=status.HTTP_201_CREATED)
+        except Exception as e:
+            return Response({'error': str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+    def delete(self, request, pk, *args, **kwargs):
+        if request.user.role != 'admin' and not request.user.is_staff and not request.user.is_superuser:
+            return Response({'error': 'Unauthorized access.'}, status=status.HTTP_403_FORBIDDEN)
+
+        patient = User.objects.filter(id=pk, role='patient').first()
+        if not patient:
+            return Response({'error': 'Patient record not found.'}, status=status.HTTP_404_NOT_FOUND)
+
+        patient.delete()
+        return Response({'message': 'Patient deleted successfully.'}, status=status.HTTP_200_OK)
+

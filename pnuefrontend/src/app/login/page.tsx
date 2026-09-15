@@ -27,7 +27,9 @@ export default function Login() {
     const token = localStorage.getItem("token");
     const role = localStorage.getItem("role");
     if (token) {
-      if (role === "doctor") {
+      if (role === "admin") {
+        router.push("/admin-dashboard");
+      } else if (role === "doctor") {
         router.push("/doctor-dashboard");
       } else {
         router.push("/patient-dashboard");
@@ -72,7 +74,9 @@ export default function Login() {
       }
 
       // Smooth transition to corresponding dashboard
-      if (role === "doctor") {
+      if (role === "admin") {
+        router.push("/admin-dashboard");
+      } else if (role === "doctor") {
         router.push("/doctor-dashboard");
       } else {
         router.push("/patient-dashboard");
@@ -106,7 +110,7 @@ export default function Login() {
           </p>
         </div>
 
-        {/* Auth Card */}
+          {/* Auth Card */}
         <div className="bg-brand-white rounded-2xl p-8 border border-brand-border shadow-soft">
           <div className="mb-6 text-center">
             <h2 className="text-xl font-semibold text-brand-navy">
@@ -114,14 +118,14 @@ export default function Login() {
             </h2>
             <p className="text-xs text-brand-muted mt-1 font-medium">
               {isLogin
-                ? "Sign in to access advanced diagnostics"
+                ? "Sign in with your email and password"
                 : "Register a clinical workspace account"}
             </p>
           </div>
 
           {error && (
             <div className="mb-6 p-4 bg-red-50 border border-red-200 rounded-lg text-red-600 text-sm flex items-start space-x-2 animate-in fade-in duration-300">
-              <AlertCircle className="w-5 h-5 flex-shrink-0 mt-0.5" />
+              <AlertCircle className="w-5 h-5 shrink-0 mt-0.5" />
               <span className="font-medium">{error}</span>
             </div>
           )}
@@ -139,7 +143,7 @@ export default function Login() {
                 <input
                   type="email"
                   required
-                  placeholder="e.g. smith@clinic.org"
+                  placeholder="e.g. admin@pneumonix.com"
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
                   className="w-full pl-10 pr-4 py-3 bg-brand-surface border border-brand-border rounded-lg text-brand-navy placeholder:text-brand-muted text-sm outline-none transition-all duration-200 focus:border-brand-indigo focus:ring-2 focus:ring-brand-indigo/20"
@@ -176,11 +180,11 @@ export default function Login() {
               {loading ? (
                 <>
                   <Loader2 className="w-5 h-5 animate-spin" />
-                  <span>Processing...</span>
+                  <span>Signing In...</span>
                 </>
               ) : (
                 <>
-                  <span>{isLogin ? "Sign In" : "Get Started"}</span>
+                  <span>{isLogin ? "Sign In to Workspace" : "Create Patient Account"}</span>
                   <ArrowRight className="w-4 h-4" />
                 </>
               )}
@@ -199,8 +203,8 @@ export default function Login() {
               className="text-sm font-semibold text-brand-indigo hover:text-brand-lavender transition-colors"
             >
               {isLogin
-                ? "Don't have an account? Sign up"
-                : "Already registered? Sign in"}
+                ? "Don't have an account? Register as Patient"
+                : "Already registered? Sign in to your account"}
             </button>
           </div>
         </div>

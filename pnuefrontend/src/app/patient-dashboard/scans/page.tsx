@@ -5,14 +5,16 @@ import { useRouter } from "next/navigation";
 import axios from "axios";
 import { Sidebar } from "@/components/Sidebar";
 import { Topbar } from "@/components/Topbar";
+import { downloadDiagnosticReport } from "@/utils/downloadReport";
 import {
   Activity,
-  Calendar,
-  Loader2,
   FileImage,
+  Loader2,
+  Calendar,
   Percent,
   CheckCircle,
   AlertCircle,
+  Download
 } from "lucide-react";
 
 interface ScanRecord {
@@ -61,6 +63,48 @@ export default function PatientScansPage() {
       console.error("Failed to fetch scans", err);
     } finally {
       setLoading(false);
+    }
+  };
+
+  const handleDownloadReport = async (scan: ScanRecord) => {
+    try {
+      let profile = null;
+      let prescriptions = [];
+      if (token) {
+        try {
+          const profRes = await axios.get("/backend/user", {
+            headers: { Authorization: `Token ${token}` }
+          });
+          profile = profRes.data;
+        } catch (e) {}
+
+        try {
+          const prescRes = await axios.get("/backend/prescriptions", {
+            headers: { Authorization: `Token ${token}` }
+          });
+          prescriptions = prescRes.data;
+        } catch (e) {}
+      }
+
+      downloadDiagnosticReport({
+        patient_name: profile
+          ? `${profile.first_name} ${profile.last_name}`.trim() || profile.email
+          : username || "Patient Record",
+        patient_email: profile?.email || username || "",
+        patient_age: profile?.age,
+        patient_gender: profile?.gender,
+        patient_blood_group: profile?.blood_group,
+        patient_contact: profile?.contact_number,
+        scan_id: scan.id,
+        scan_result: scan.result,
+        scan_confidence: scan.confidence,
+        scan_image_url: scan.image_url,
+        scan_date: scan.created_at,
+        doctor_remarks: scan.doctor_remarks,
+        prescriptions: prescriptions
+      });
+    } catch (err) {
+      alert("Failed to generate report download.");
     }
   };
 
@@ -187,17 +231,24 @@ export default function PatientScansPage() {
                     <div className="border-t border-brand-border/40 pt-4">
                       <h4 className="text-xs font-bold text-brand-navy flex items-center space-x-1.5 mb-1.5">
                         {scan.result === "Normal" ? (
-                          <CheckCircle className="w-4 h-4 text-brand-teal flex-shrink-0" />
+                          <CheckCircle className="w-4 h-4 text-brand-teal shrink-0" />
                         ) : (
-                          <AlertCircle className="w-4 h-4 text-rose-500 flex-shrink-0" />
+                          <AlertCircle className="w-4 h-4 text-rose-500 shrink-0" />
                         )}
                         <span>Diagnostic Report Summary</span>
                       </h4>
-                      <p className="text-xs text-brand-navy bg-brand-surface/40 rounded-lg p-3 italic break-words leading-relaxed">
+                      <p className="text-xs text-brand-navy bg-brand-surface/40 rounded-lg p-3 italic wrap-break-word leading-relaxed mb-3">
                         {scan.doctor_remarks
                           ? `"${scan.doctor_remarks}"`
                           : "Remarks pending clinician clinical notes."}
                       </p>
+                      <button
+                        onClick={() => handleDownloadReport(scan)}
+                        className="w-full py-2 bg-brand-teal/10 hover:bg-brand-teal text-brand-teal hover:text-white rounded-lg text-xs font-bold transition-all flex items-center justify-center space-x-1.5"
+                      >
+                        <Download className="w-3.5 h-3.5" />
+                        <span>Download Scan & Prescription Report</span>
+                      </button>
                     </div>
                   </div>
                 </div>

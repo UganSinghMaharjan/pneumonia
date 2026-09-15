@@ -131,9 +131,12 @@ CORS_ALLOW_ALL_ORIGINS = True
 # Don't redirect POST requests missing trailing slashes (proxy-safe)
 APPEND_SLASH = False
 
-# Hardcoded Doctor Credentials
+# Hardcoded Credentials
 DOCTOR_EMAIL = 'dr_maharjans@gmail.com'
 DOCTOR_PASSWORD = 'doctor@123'
+
+ADMIN_EMAIL = 'admin@pneumonix.com'
+ADMIN_PASSWORD = 'admin@123'
 
 AUTH_USER_MODEL = 'api.User'
 
