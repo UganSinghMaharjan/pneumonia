@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import axios from "axios";
 import { Sidebar } from "@/components/Sidebar";
 import { Topbar } from "@/components/Topbar";
+import { useToast } from "@/context/ToastContext";
 import { downloadDiagnosticReport } from "@/utils/downloadReport";
 import {
   Users,
@@ -82,6 +83,7 @@ interface ScanRecord {
 
 export default function AdminDashboard({ initialTab = "overview" }: { initialTab?: string }) {
   const router = useRouter();
+  const toast = useToast();
   const [username, setUsername] = useState<string | null>(null);
   const [activeTab, setActiveTab] = useState<string>(initialTab);
 
@@ -149,6 +151,7 @@ export default function AdminDashboard({ initialTab = "overview" }: { initialTab
   }, [router]);
 
   const handleLogout = () => {
+    toast.info("Logged out successfully.", "Signed Out");
     localStorage.removeItem("token");
     localStorage.removeItem("role");
     localStorage.removeItem("username");
@@ -226,8 +229,11 @@ export default function AdminDashboard({ initialTab = "overview" }: { initialTab
       });
       fetchDoctors();
       fetchStats();
+      toast.success("Doctor account created successfully.", "Doctor Registered");
     } catch (err: any) {
-      setModalError(err.response?.data?.error || "Failed to create doctor account.");
+      const errMsg = err.response?.data?.error || "Failed to create doctor account.";
+      setModalError(errMsg);
+      toast.error(errMsg, "Registration Failed");
     } finally {
       setModalLoading(false);
     }
@@ -239,8 +245,10 @@ export default function AdminDashboard({ initialTab = "overview" }: { initialTab
       await axios.delete(`/backend/admin/doctors/${id}/`, { headers: getAuthHeaders() });
       fetchDoctors();
       fetchStats();
+      toast.success("Doctor account removed.", "Doctor Deleted");
     } catch (err: any) {
-      alert(err.response?.data?.error || "Failed to delete doctor.");
+      const errMsg = err.response?.data?.error || "Failed to delete doctor.";
+      toast.error(errMsg, "Delete Failed");
     }
   };
 
@@ -265,8 +273,11 @@ export default function AdminDashboard({ initialTab = "overview" }: { initialTab
       });
       fetchPatients();
       fetchStats();
+      toast.success("Patient account created successfully.", "Patient Registered");
     } catch (err: any) {
-      setModalError(err.response?.data?.error || "Failed to create patient account.");
+      const errMsg = err.response?.data?.error || "Failed to create patient account.";
+      setModalError(errMsg);
+      toast.error(errMsg, "Registration Failed");
     } finally {
       setModalLoading(false);
     }
@@ -278,8 +289,10 @@ export default function AdminDashboard({ initialTab = "overview" }: { initialTab
       await axios.delete(`/backend/admin/patients/${id}/`, { headers: getAuthHeaders() });
       fetchPatients();
       fetchStats();
+      toast.success("Patient account removed.", "Patient Deleted");
     } catch (err: any) {
-      alert(err.response?.data?.error || "Failed to delete patient.");
+      const errMsg = err.response?.data?.error || "Failed to delete patient.";
+      toast.error(errMsg, "Delete Failed");
     }
   };
 
@@ -290,8 +303,10 @@ export default function AdminDashboard({ initialTab = "overview" }: { initialTab
       if (selectedScan?.id === id) setSelectedScan(null);
       fetchScans();
       fetchStats();
+      toast.success("Scan record deleted.", "Scan Removed");
     } catch (err: any) {
-      alert(err.response?.data?.error || "Failed to delete scan.");
+      const errMsg = err.response?.data?.error || "Failed to delete scan.";
+      toast.error(errMsg, "Delete Failed");
     }
   };
 

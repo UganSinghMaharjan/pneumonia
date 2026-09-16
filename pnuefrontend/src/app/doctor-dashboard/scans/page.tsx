@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import axios from "axios";
 import { Sidebar } from "@/components/Sidebar";
 import { Topbar } from "@/components/Topbar";
+import { useToast } from "@/context/ToastContext";
 import { downloadDiagnosticReport } from "@/utils/downloadReport";
 import {
   FileImage,
@@ -53,6 +54,7 @@ export default function DoctorScansPage() {
   const [deleteLoading, setDeleteLoading] = useState(false);
 
   const router = useRouter();
+  const toast = useToast();
 
   useEffect(() => {
     const storedToken = localStorage.getItem("token");
@@ -101,9 +103,10 @@ export default function DoctorScansPage() {
       );
       setEditingScanId(null);
       setEditRemarksText("");
+      toast.success("Clinician remarks updated successfully.", "Remarks Saved");
     } catch (err) {
       console.error("Failed to update remarks", err);
-      alert("Failed to save remarks. Please try again.");
+      toast.error("Failed to save remarks. Please try again.", "Update Failed");
     } finally {
       setRemarksLoading(false);
     }
@@ -118,9 +121,10 @@ export default function DoctorScansPage() {
       });
       setScans((prev) => prev.filter((s) => s.id !== scanId));
       setConfirmDeleteId(null);
+      toast.success("Scan record deleted successfully.", "Scan Removed");
     } catch (err) {
       console.error("Failed to delete scan", err);
-      alert("Failed to delete scan. Please try again.");
+      toast.error("Failed to delete scan. Please try again.", "Delete Failed");
     } finally {
       setDeleteLoading(false);
     }
@@ -151,12 +155,14 @@ export default function DoctorScansPage() {
         doctor_remarks: scan.doctor_remarks,
         prescriptions: prescriptions
       });
+      toast.info("Generating report download...", "Download Initiated");
     } catch (err) {
-      alert("Failed to generate report download.");
+      toast.error("Failed to generate report download.", "Download Error");
     }
   };
 
   const handleLogout = () => {
+    toast.info("Logged out successfully.", "Signed Out");
     localStorage.removeItem("token");
     localStorage.removeItem("role");
     localStorage.removeItem("username");

@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import axios from "axios";
 import { Sidebar } from "@/components/Sidebar";
 import { Topbar } from "@/components/Topbar";
+import { useToast } from "@/context/ToastContext";
 import {
   User,
   Calendar,
@@ -125,6 +126,7 @@ export default function PatientDashboard() {
   const [username, setUsername] = useState<string | null>(null);
   const [authorized, setAuthorized] = useState(false);
   const [loading, setLoading] = useState(true);
+  const toast = useToast();
 
   // Profile Edit State
   const [profile, setProfile] = useState<UserProfile | null>(null);
@@ -243,13 +245,15 @@ export default function PatientDashboard() {
       );
       setProfile((prev: any) => ({ ...prev, ...response.data }));
       setIsEditing(false);
+      toast.success("Profile details updated successfully.", "Profile Saved");
     } catch (err) {
       console.error("Failed to update profile", err);
-      alert("Failed to update profile. Please try again.");
+      toast.error("Failed to update profile. Please try again.", "Update Failed");
     }
   };
 
   const handleLogout = () => {
+    toast.info("Logged out successfully.", "Signed Out");
     localStorage.removeItem("token");
     localStorage.removeItem("role");
     localStorage.removeItem("username");

@@ -5,6 +5,7 @@ import { useRouter, useSearchParams } from "next/navigation";
 import axios from "axios";
 import { Sidebar } from "@/components/Sidebar";
 import { Topbar } from "@/components/Topbar";
+import { useToast } from "@/context/ToastContext";
 import {
   Calendar,
   Clock,
@@ -59,6 +60,7 @@ function AppointmentsContent() {
 
   const router = useRouter();
   const searchParams = useSearchParams();
+  const toast = useToast();
 
   useEffect(() => {
     const storedToken = localStorage.getItem("token");
@@ -124,7 +126,9 @@ function AppointmentsContent() {
         },
         { headers: { Authorization: `Token ${token}` } },
       );
-      setSuccess("Your appointment request was submitted successfully!");
+      const msg = "Your appointment request was submitted successfully!";
+      setSuccess(msg);
+      toast.success(msg, "Appointment Requested");
       setForm({
         requested_date: "",
         requested_time: "",
@@ -133,10 +137,11 @@ function AppointmentsContent() {
       });
       fetchAppointments(token);
     } catch (err: any) {
-      setError(
+      const errMsg =
         err.response?.data?.error ||
-          "Failed to submit request. Please try again.",
-      );
+        "Failed to submit request. Please try again.";
+      setError(errMsg);
+      toast.error(errMsg, "Request Failed");
     } finally {
       setSubmitLoading(false);
     }
@@ -173,6 +178,7 @@ function AppointmentsContent() {
   };
 
   const handleLogout = () => {
+    toast.info("Logged out successfully.", "Signed Out");
     localStorage.removeItem("token");
     localStorage.removeItem("role");
     localStorage.removeItem("username");

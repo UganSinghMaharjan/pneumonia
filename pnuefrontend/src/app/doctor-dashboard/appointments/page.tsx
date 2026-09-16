@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import axios from "axios";
 import { Sidebar } from "@/components/Sidebar";
 import { Topbar } from "@/components/Topbar";
+import { useToast } from "@/context/ToastContext";
 import {
   Calendar,
   Clock,
@@ -60,6 +61,7 @@ export default function DoctorAppointmentsPage() {
   const [modalLoading, setModalLoading] = useState(false);
 
   const router = useRouter();
+  const toast = useToast();
 
   useEffect(() => {
     const storedToken = localStorage.getItem("token");
@@ -117,6 +119,12 @@ export default function DoctorAppointmentsPage() {
         { headers: { Authorization: `Token ${token}` } },
       );
 
+      if (modalAction === "accept") {
+        toast.success("Appointment request accepted & scheduled.", "Appointment Approved");
+      } else {
+        toast.warning("Appointment request rejected.", "Appointment Rejected");
+      }
+
       // Close modal and reset fields
       setSelectedApp(null);
       setModalAction(null);
@@ -128,7 +136,7 @@ export default function DoctorAppointmentsPage() {
       fetchAppointments(token);
     } catch (err) {
       console.error("Failed to update appointment status", err);
-      alert("Failed to update appointment. Please try again.");
+      toast.error("Failed to update appointment. Please try again.", "Action Failed");
     } finally {
       setModalLoading(false);
     }
@@ -146,14 +154,16 @@ export default function DoctorAppointmentsPage() {
         },
         { headers: { Authorization: `Token ${token}` } },
       );
+      toast.success("Appointment marked as completed.", "Appointment Completed");
       fetchAppointments(token);
     } catch (err) {
       console.error("Failed to complete appointment", err);
-      alert("Failed to update status. Please try again.");
+      toast.error("Failed to update status. Please try again.", "Action Failed");
     }
   };
 
   const handleLogout = () => {
+    toast.info("Logged out successfully.", "Signed Out");
     localStorage.removeItem("token");
     localStorage.removeItem("role");
     localStorage.removeItem("username");

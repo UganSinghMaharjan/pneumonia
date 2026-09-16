@@ -3,10 +3,12 @@
 import { useEffect } from "react";
 import { useRouter, usePathname } from "next/navigation";
 import axios from "axios";
+import { useToast } from "@/context/ToastContext";
 
 export default function AxiosInterceptor() {
   const router = useRouter();
   const pathname = usePathname();
+  const toast = useToast();
 
   useEffect(() => {
     const interceptor = axios.interceptors.response.use(
@@ -18,6 +20,7 @@ export default function AxiosInterceptor() {
             localStorage.removeItem("token");
             localStorage.removeItem("role");
             localStorage.removeItem("username");
+            toast.error("Session expired. Please sign in again.", "Session Expired");
             router.push("/login");
           }
         }
@@ -28,7 +31,7 @@ export default function AxiosInterceptor() {
     return () => {
       axios.interceptors.response.eject(interceptor);
     };
-  }, [router, pathname]);
+  }, [router, pathname, toast]);
 
   return null;
 }

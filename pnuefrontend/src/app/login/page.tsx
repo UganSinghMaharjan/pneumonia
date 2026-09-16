@@ -3,6 +3,7 @@
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import axios from "axios";
+import { useToast } from "@/context/ToastContext";
 import {
   Activity,
   Mail,
@@ -21,6 +22,7 @@ export default function Login() {
   const [error, setError] = useState<string | null>(null);
 
   const router = useRouter();
+  const toast = useToast();
 
   useEffect(() => {
     // If token exists, redirect to dashboard immediately
@@ -58,8 +60,9 @@ export default function Login() {
         // Switch back to login view after successful registration
         setIsLogin(true);
         setPassword(""); // clear password for security
-        alert(
+        toast.success(
           "Account created successfully! Please sign in with your new credentials.",
+          "Registration Successful"
         );
         return;
       }
@@ -73,6 +76,8 @@ export default function Login() {
         localStorage.setItem("role", role);
       }
 
+      toast.success(`Signed in successfully as ${role || "user"}.`, "Welcome Back");
+
       // Smooth transition to corresponding dashboard
       if (role === "admin") {
         router.push("/admin-dashboard");
@@ -84,11 +89,11 @@ export default function Login() {
 
       router.refresh();
     } catch (err: any) {
-      // Removed console.error to prevent expected 401s from cluttering the dev console
-      setError(
+      const errMsg =
         err.response?.data?.error ||
-          "Something went wrong. Please check your credentials and try again.",
-      );
+        "Something went wrong. Please check your credentials and try again.";
+      setError(errMsg);
+      toast.error(errMsg, "Authentication Error");
     } finally {
       setLoading(false);
     }

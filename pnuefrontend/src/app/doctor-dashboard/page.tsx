@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import axios from "axios";
 import { Sidebar } from "@/components/Sidebar";
 import { Topbar } from "@/components/Topbar";
+import { useToast } from "@/context/ToastContext";
 import {
   UploadCloud,
   FileImage,
@@ -60,6 +61,7 @@ export default function DoctorDashboard() {
 
   const fileInputRef = useRef<HTMLInputElement>(null);
   const router = useRouter();
+  const toast = useToast();
 
   useEffect(() => {
     const storedToken = localStorage.getItem("token");
@@ -133,7 +135,9 @@ export default function DoctorDashboard() {
     if (!image || !token) return;
 
     if (!selectedPatientId) {
-      setError("Please select a patient before scanning.");
+      const msg = "Please select a patient before scanning.";
+      setError(msg);
+      toast.warning(msg, "Patient Selection Required");
       return;
     }
 
@@ -159,6 +163,18 @@ export default function DoctorDashboard() {
 
       setResult(response.data);
 
+      const resClass = response.data.predicted_class || "Completed";
+      if (resClass === "Rejected") {
+        toast.warning(response.data.message || "Image rejected.", "Scan Rejected");
+      } else {
+        toast.success(
+          `Radiograph scan completed! Finding: ${resClass} (${(
+            response.data.confidence * 100
+          ).toFixed(1)}%)`,
+          "Scan Complete"
+        );
+      }
+
       // Reset upload inputs except remarks
       setImage(null);
       setPreview(null);
@@ -168,16 +184,18 @@ export default function DoctorDashboard() {
       fetchInitialData(token);
     } catch (err: any) {
       console.error(err);
-      setError(
+      const errMsg =
         err.response?.data?.error ||
-          "An error occurred while analyzing the image.",
-      );
+        "An error occurred while analyzing the image.";
+      setError(errMsg);
+      toast.error(errMsg, "Scan Failed");
     } finally {
       setLoading(false);
     }
   };
 
   const handleLogout = () => {
+    toast.info("Logged out successfully.", "Signed Out");
     localStorage.removeItem("token");
     localStorage.removeItem("role");
     localStorage.removeItem("username");

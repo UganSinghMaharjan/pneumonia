@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { Inter } from "next/font/google";
 import AxiosInterceptor from "@/components/AxiosInterceptor";
+import { ToastProvider } from "@/context/ToastContext";
 import "./globals.css";
 
 const inter = Inter({
@@ -21,8 +22,10 @@ export default function RootLayout({
   return (
     <html lang="en" className={`${inter.variable} h-full antialiased`}>
       <body className="min-h-full flex flex-col">
-        <AxiosInterceptor />
-        {children}
+        <ToastProvider>
+          <AxiosInterceptor />
+          {children}
+        </ToastProvider>
       </body>
     </html>
   );
