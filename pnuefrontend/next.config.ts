@@ -2,7 +2,7 @@ import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
   skipTrailingSlashRedirect: true,
-  // Allow requests from any device on the local network
+  // Allow requests from any device on the local networks
   allowedDevOrigins: [
     "192.168.254.18",
     "192.168.1.*",
