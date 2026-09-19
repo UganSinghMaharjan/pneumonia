@@ -103,10 +103,11 @@ npm run dev
 
 ## Accessing the App
 
-| Role | URL | Default Credentials |
-|------|-----|---------------------|
-| Doctor | http://192.168.1.77:3000/login | dr_maharjans@gmail.com / doctor@123 |
-| Patient | http://192.168.1.77:3000/login | Register a new account |
+| Role | URL | Authentication |
+|------|-----|----------------|
+| Admin | http://192.168.1.77:3000/login | Database Admin account |
+| Doctor | http://192.168.1.77:3000/login | Doctor account created by Admin |
+| Patient | http://192.168.1.77:3000/login | Register a new account / Patient sign in |
 | Django Admin | http://localhost:8000/admin | Superuser account |
 
 From another computer on the same network, use the Network URL (192.168.1.77:3000).

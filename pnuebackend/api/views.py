@@ -44,9 +44,6 @@ class RegisterView(APIView):
         if not email or not password:
             return Response({'error': 'Email and password are required.'}, status=status.HTTP_400_BAD_REQUEST)
 
-        if email == settings.DOCTOR_EMAIL:
-            return Response({'error': 'Cannot register this account.'}, status=status.HTTP_403_FORBIDDEN)
-
         if User.objects.filter(email=email).exists() or User.objects.filter(username=email).exists():
             return Response({'error': 'Email already exists.'}, status=status.HTTP_400_BAD_REQUEST)
 
@@ -84,71 +81,13 @@ class LoginView(APIView):
         if not email or not password:
             return Response({'error': 'Email and password are required.'}, status=status.HTTP_400_BAD_REQUEST)
 
-        # Check for hardcoded admin account
-        admin_email = getattr(settings, 'ADMIN_EMAIL', 'admin@pneumonix.com')
-        admin_password = getattr(settings, 'ADMIN_PASSWORD', 'admin@123')
-        if email == admin_email and password == admin_password:
-            admin_user, created = User.objects.get_or_create(
-                username=email,
-                email=email,
-                defaults={'role': 'admin', 'is_staff': True, 'is_superuser': True}
-            )
-            if created or not admin_user.has_usable_password() or admin_user.role != 'admin':
-                admin_user.set_password(password)
-                admin_user.role = 'admin'
-                admin_user.is_staff = True
-                admin_user.is_superuser = True
-                admin_user.save()
-            token, _ = Token.objects.get_or_create(user=admin_user)
-            return Response({
-                'token': token.key,
-                'username': admin_user.username,
-                'email': admin_user.email,
-                'role': 'admin'
-            }, status=status.HTTP_200_OK)
-
-        # Check for hardcoded doctor account
-        if email == settings.DOCTOR_EMAIL and password == settings.DOCTOR_PASSWORD:
-            doctor_user, created = User.objects.get_or_create(
-                username=email,
-                email=email,
-                defaults={'role': 'doctor'}
-            )
-            if created or not doctor_user.has_usable_password():
-                doctor_user.set_password(password)
-                doctor_user.role = 'doctor'
-                doctor_user.save()
-            token, _ = Token.objects.get_or_create(user=doctor_user)
-            return Response({
-                'token': token.key,
-                'username': doctor_user.username,
-                'email': doctor_user.email,
-                'role': 'doctor'
-            }, status=status.HTTP_200_OK)
-
-        # Check for demo patient account
-        if email == 'samplepatient@pneumonix.com' and password == 'patient@123':
-            patient_user, created = User.objects.get_or_create(
-                username=email,
-                email=email,
-                defaults={'role': 'patient', 'first_name': 'Sample', 'last_name': 'Patient'}
-            )
-            if created or not patient_user.has_usable_password():
-                patient_user.set_password(password)
-                patient_user.role = 'patient'
-                patient_user.save()
-            token, _ = Token.objects.get_or_create(user=patient_user)
-            return Response({
-                'token': token.key,
-                'username': patient_user.username,
-                'email': patient_user.email,
-                'role': 'patient'
-            }, status=status.HTTP_200_OK)
-
-        # Lookup user by email
+        # Lookup user by email or username
         user = User.objects.filter(email=email).first()
+        if not user:
+            user = User.objects.filter(username=email).first()
+
         if not user or not user.check_password(password):
-            return Response({'error': 'Invalid credentials.'}, status=status.HTTP_401_UNAUTHORIZED)
+            return Response({'error': 'Invalid email or password.'}, status=status.HTTP_401_UNAUTHORIZED)
 
         token, created = Token.objects.get_or_create(user=user)
         return Response({
@@ -450,15 +389,15 @@ class AppointmentView(APIView):
         if not requested_date or not requested_time or not reason:
             return Response({'error': 'Date, time, and reason are required.'}, status=status.HTTP_400_BAD_REQUEST)
 
-        # Get or create the hardcoded doctor
-        doctor = User.objects.filter(email='dr_maharjans@gmail.com').first()
+        doctor_id = request.data.get('doctor_id')
+        doctor = None
+        if doctor_id:
+            doctor = User.objects.filter(id=doctor_id, role='doctor').first()
         if not doctor:
-            doctor = User.objects.create_user(
-                username='dr_maharjans@gmail.com',
-                email='dr_maharjans@gmail.com',
-                password=settings.DOCTOR_PASSWORD,
-                role='doctor'
-            )
+            doctor = User.objects.filter(role='doctor').first()
+
+        if not doctor:
+            return Response({'error': 'No attending doctor is available at this time.'}, status=status.HTTP_400_BAD_REQUEST)
 
         try:
             appointment = Appointment.objects.create(

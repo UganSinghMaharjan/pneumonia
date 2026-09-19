@@ -148,7 +148,7 @@ export default function Login() {
                 <input
                   type="email"
                   required
-                  placeholder="e.g. admin@pneumonix.com"
+                  placeholder="e.g. user@example.com"
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
                   className="w-full pl-10 pr-4 py-3 bg-brand-surface border border-brand-border rounded-lg text-brand-navy placeholder:text-brand-muted text-sm outline-none transition-all duration-200 focus:border-brand-indigo focus:ring-2 focus:ring-brand-indigo/20"

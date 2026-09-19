@@ -29,6 +29,8 @@ interface AppointmentRecord {
   reason: string;
   notes: string;
   doctor_notes: string;
+  doctor_email?: string;
+  doctor_name?: string;
   status: "Pending" | "Accepted" | "Rejected" | "Completed";
 }
 
@@ -225,11 +227,7 @@ function AppointmentsContent() {
                   <span>Book Appointment</span>
                 </h3>
                 <p className="text-xs text-brand-muted mb-6">
-                  Select your preferred schedule. All bookings are routed to{" "}
-                  <strong className="text-brand-navy">
-                    dr_maharjans@gmail.com
-                  </strong>{" "}
-                  for approval.
+                  Select your preferred schedule. All bookings are routed to an attending physician for approval.
                 </p>
 
                 {error && (
@@ -429,10 +427,10 @@ function AppointmentsContent() {
                             Consultant
                           </span>
                           <span className="text-xs font-bold text-brand-navy block">
-                            Dr. Ugan Maharjan
+                            Attending Physician
                           </span>
                           <span className="text-[10px] text-brand-muted block mt-0.5">
-                            dr_maharjans@gmail.com
+                            {app.doctor_email || "Medical Staff"}
                           </span>
                         </div>
                       </div>
