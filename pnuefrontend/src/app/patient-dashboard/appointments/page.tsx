@@ -335,14 +335,14 @@ function AppointmentsContent() {
 
                 {error && (
                   <div className="mb-4 p-3.5 bg-rose-50 border border-rose-200 rounded-lg text-rose-600 text-xs font-semibold flex items-start space-x-2">
-                    <AlertCircle className="w-4 h-4 mt-0.5 flex-shrink-0" />
+                    <AlertCircle className="w-4 h-4 mt-0.5 shrink-0" />
                     <span>{error}</span>
                   </div>
                 )}
 
                 {success && (
                   <div className="mb-4 p-3.5 bg-emerald-50 border border-emerald-200 rounded-lg text-emerald-600 text-xs font-semibold flex items-start space-x-2">
-                    <CheckCircle className="w-4 h-4 mt-0.5 flex-shrink-0" />
+                    <CheckCircle className="w-4 h-4 mt-0.5 shrink-0" />
                     <span>{success}</span>
                   </div>
                 )}
@@ -350,7 +350,7 @@ function AppointmentsContent() {
                 <form onSubmit={handleSubmit} className="space-y-4">
                   {/* Clinic Selection */}
                   <div>
-                    <label className="block text-xs font-bold text-brand-muted uppercase tracking-wider mb-1.5 flex items-center space-x-1.5">
+                    <label className="text-xs font-bold text-brand-muted uppercase tracking-wider mb-1.5 flex items-center space-x-1.5">
                       <Building2 className="w-3.5 h-3.5 text-brand-indigo" />
                       <span>Select Clinic</span>
                     </label>
@@ -372,20 +372,20 @@ function AppointmentsContent() {
                   {/* Doctor Selection (Dynamic based on selected clinic) */}
                   {selectedClinicObj && (
                     <div>
-                      <label className="block text-xs font-bold text-brand-muted uppercase tracking-wider mb-1.5 flex items-center space-x-1.5">
+                      <label className="text-xs font-bold text-brand-muted uppercase tracking-wider mb-1.5 flex items-center space-x-1.5">
                         <Stethoscope className="w-3.5 h-3.5 text-brand-indigo" />
                         <span>Attending Doctor</span>
                       </label>
 
                       {availableDoctors.length === 0 ? (
                         <div className="p-3 bg-rose-50 border border-rose-200 rounded-lg text-rose-700 text-xs font-medium flex items-center space-x-2">
-                          <AlertCircle className="w-4 h-4 flex-shrink-0 text-rose-500" />
+                          <AlertCircle className="w-4 h-4 shrink-0 text-rose-500" />
                           <span>No doctors assigned to this clinic yet. Please choose another center.</span>
                         </div>
                       ) : availableDoctors.length === 1 ? (
                         <div className="p-3 bg-brand-indigo/5 border border-brand-indigo/20 rounded-lg text-xs font-semibold text-brand-navy flex items-center justify-between">
                           <div className="flex items-center space-x-2">
-                            <UserCheck className="w-4 h-4 text-brand-indigo flex-shrink-0" />
+                            <UserCheck className="w-4 h-4 text-brand-indigo shrink-0" />
                             <div>
                               <p className="font-bold text-brand-navy">
                                 {availableDoctors[0].name}
@@ -605,7 +605,7 @@ function AppointmentsContent() {
                         </div>
 
                         {/* Clinic & Doctor Details Box */}
-                        <div className="text-left md:text-right border-t md:border-t-0 border-brand-border/40 pt-4 md:pt-0 min-w-[180px]">
+                        <div className="text-left md:text-right border-t md:border-t-0 border-brand-border/40 pt-4 md:pt-0 min-w-45">
                           <span className="text-[10px] font-bold text-brand-indigo uppercase tracking-wider block">
                             {app.clinic_name || "Pulmonary Clinic"}
                           </span>

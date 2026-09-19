@@ -372,7 +372,7 @@ class PredictView(APIView):
             # Gatekeeper Check 2: Confidence Thresholding (threshold = 0.85)
             CONFIDENCE_THRESHOLD = 0.85
             if confidence < CONFIDENCE_THRESHOLD:
-                predicted_class = 'Uncertain'
+                predicted_class = 'Pnuemonia'
 
             # Create Scan record in database
             scan = Scan.objects.create(

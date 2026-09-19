@@ -579,7 +579,7 @@ export default function PatientDashboard() {
                           <span className="block text-xs font-semibold text-brand-muted uppercase tracking-wider">
                             Address
                           </span>
-                          <span className="font-semibold text-brand-navy break-words">
+                          <span className="font-semibold text-brand-navy wrap-break-word">
                             {profile?.address || "—"}
                           </span>
                         </div>
@@ -723,7 +723,7 @@ export default function PatientDashboard() {
                             className="flex items-center justify-between p-3 bg-brand-surface/40 rounded-xl border border-brand-border/50"
                           >
                             <div className="flex items-center space-x-3">
-                              <div className="w-8 h-8 rounded-lg bg-slate-900 flex items-center justify-center overflow-hidden flex-shrink-0">
+                              <div className="w-8 h-8 rounded-lg bg-slate-900 flex items-center justify-center overflow-hidden shrink-0">
                                 {scan.image_url ? (
                                   <img
                                     src={scan.image_url}
@@ -790,7 +790,7 @@ export default function PatientDashboard() {
                               <span className="text-xs font-bold text-brand-navy">
                                 {pres.medication}
                               </span>
-                              <span className="text-[10px] text-brand-muted font-bold flex-shrink-0 ml-2">
+                              <span className="text-[10px] text-brand-muted font-bold shrink-0 ml-2">
                                 {new Date(pres.date_issued).toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" })}
                               </span>
                             </div>
@@ -886,7 +886,7 @@ export default function PatientDashboard() {
                                   {(scan.confidence * 100).toFixed(1)}%
                                 </span>
                               </div>
-                              <p className="text-xs text-brand-muted font-medium mt-3 border-t border-brand-border/40 pt-2 break-words">
+                              <p className="text-xs text-brand-muted font-medium mt-3 border-t border-brand-border/40 pt-2 wrap-break-word">
                                 <span className="font-bold text-brand-navy block mb-0.5">
                                   Doctor Remarks:
                                 </span>
@@ -1038,8 +1038,8 @@ export default function PatientDashboard() {
                             {hospital.name}
                           </h4>
                           <p className="text-xs text-brand-muted font-medium flex items-start space-x-1.5 mb-2">
-                            <MapPin className="w-3.5 h-3.5 text-brand-muted flex-shrink-0 mt-0.5" />
-                            <span className="break-words">
+                            <MapPin className="w-3.5 h-3.5 text-brand-muted shrink-0 mt-0.5" />
+                            <span className="wrap-break-word">
                               {hospital.address}
                             </span>
                           </p>
