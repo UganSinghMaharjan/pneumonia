@@ -2,7 +2,7 @@ from django.urls import path
 from .views import (
     PredictView, RegisterView, LoginView, UserProfileView,
     PatientListView, ScanListView, AppointmentView, AppointmentDetailView,
-    PrescriptionView, MedicalHistoryView,
+    PrescriptionView, MedicalHistoryView, ClinicListView,
     AdminStatsView, AdminDoctorsView, AdminPatientsView
 )
 
@@ -10,6 +10,7 @@ urlpatterns = [
     path('register/', RegisterView.as_view(), name='register'),
     path('login/', LoginView.as_view(), name='login'),
     path('user/', UserProfileView.as_view(), name='user-profile'),
+    path('clinics/', ClinicListView.as_view(), name='clinics-list'),
     path('predict/', PredictView.as_view(), name='predict'),
     path('patients/', PatientListView.as_view(), name='patients-list'),
     path('scans/', ScanListView.as_view(), name='scans-list'),

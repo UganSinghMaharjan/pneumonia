@@ -25,6 +25,7 @@ interface AppointmentRecord {
   patient_id: number;
   patient_name: string;
   patient_email: string;
+  clinic_name?: string;
   doctor_id: number;
   doctor_email: string;
   requested_date: string;
@@ -290,6 +291,11 @@ export default function DoctorAppointmentsPage() {
                           <span className="text-[10px] text-brand-muted font-bold block">
                             {app.patient_email}
                           </span>
+                          {app.clinic_name && (
+                            <span className="inline-block text-[10px] font-bold text-brand-indigo bg-brand-indigo/10 px-2 py-0.5 rounded mt-1">
+                              {app.clinic_name}
+                            </span>
+                          )}
                         </div>
                       </div>
                       <span

@@ -13,7 +13,93 @@ import tensorflow as tf
 from PIL import Image
 import io
 
-from .models import User, Appointment, Scan, Prescription, MedicalHistory
+from django.db.models import Q
+from .models import User, Appointment, Scan, Prescription, MedicalHistory, Clinic
+
+class ClinicListView(APIView):
+    def get(self, request, *args, **kwargs):
+        try:
+            clinics = Clinic.objects.all().order_by('id')
+            if clinics.exists():
+                data = []
+                for c in clinics:
+                    doctors_list = []
+                    for doc in c.doctors.filter(role='doctor'):
+                        doc_name = f"Dr. {doc.first_name} {doc.last_name}".strip()
+                        if doc_name == "Dr.":
+                            doc_name = f"Dr. {doc.email.split('@')[0].capitalize()}"
+                        doctors_list.append({
+                            'id': doc.id,
+                            'name': doc_name,
+                            'email': doc.email,
+                            'contact_number': doc.contact_number,
+                        })
+                    data.append({
+                        'id': c.id,
+                        'name': c.name,
+                        'address': c.address,
+                        'phone': c.phone,
+                        'specialty': c.specialty,
+                        'doctors': doctors_list,
+                        'doctors_count': len(doctors_list)
+                    })
+                return Response(data, status=status.HTTP_200_OK)
+        except Exception:
+            pass
+
+        # Fallback clinics with any registered doctors assigned to primary clinic
+        doctors = User.objects.filter(role='doctor')
+        doc_list = []
+        for doc in doctors:
+            doc_name = f"Dr. {doc.first_name} {doc.last_name}".strip()
+            if doc_name == "Dr.":
+                doc_name = f"Dr. {doc.email.split('@')[0].capitalize()}"
+            doc_list.append({
+                'id': doc.id,
+                'name': doc_name,
+                'email': doc.email,
+                'contact_number': doc.contact_number,
+            })
+
+        fallback_clinics = [
+            {
+                'id': 1,
+                'name': "Maharjan Pulmonary Clinic",
+                'address': "123 Lung Health Way, Pulchowk, Lalitpur",
+                'phone': "+977-1-5543210",
+                'specialty': "Respiratory Specialists & Asthma Center",
+                'doctors': doc_list,
+                'doctors_count': len(doc_list),
+            },
+            {
+                'id': 2,
+                'name': "Patna Respiratory Care Center",
+                'address': "456 Pulmonary Avenue, Lalitpur",
+                'phone': "+977-1-5521045",
+                'specialty': "Pneumonia Treatment & Pulmonary Rehab",
+                'doctors': doc_list,
+                'doctors_count': len(doc_list),
+            },
+            {
+                'id': 3,
+                'name': "Norvic International Hospital",
+                'address': "Thapathali, Kathmandu",
+                'phone': "+977-1-4258554",
+                'specialty': "Comprehensive Pulmonary & Critical Care",
+                'doctors': [],
+                'doctors_count': 0,
+            },
+            {
+                'id': 4,
+                'name': "Bir Hospital Pulmonology Dept",
+                'address': "Kanti Path, Kathmandu",
+                'phone': "+977-1-4221119",
+                'specialty': "Pneumonia Checkup & Inpatient Respiratory Care",
+                'doctors': [],
+                'doctors_count': 0,
+            },
+        ]
+        return Response(fallback_clinics, status=status.HTTP_200_OK)
 
 # Load model once when the app starts
 MODEL_PATH = os.path.join(settings.BASE_DIR, 'model', 'pneumonia_cnn_model.h5')
@@ -148,10 +234,35 @@ class PatientListView(APIView):
     permission_classes = [IsAuthenticated]
 
     def get(self, request, *args, **kwargs):
-        if request.user.role not in ['doctor', 'admin']:
+        if request.user.role not in ['doctor', 'admin'] and not request.user.is_staff and not request.user.is_superuser:
             return Response({'error': 'Unauthorized access.'}, status=status.HTTP_403_FORBIDDEN)
         
-        patients = User.objects.filter(role='patient').order_by('email')
+        search_q = request.query_params.get('search', '').strip()
+
+        if request.user.role == 'doctor':
+            doc = request.user
+            if search_q:
+                patients = User.objects.filter(role='patient').filter(
+                    Q(email__icontains=search_q) |
+                    Q(first_name__icontains=search_q) |
+                    Q(last_name__icontains=search_q)
+                ).order_by('email')
+            else:
+                patient_ids = set()
+                patient_ids.update(Appointment.objects.filter(doctor=doc).values_list('patient_id', flat=True))
+                patient_ids.update(Scan.objects.filter(doctor=doc).values_list('patient_id', flat=True))
+                patient_ids.update(Prescription.objects.filter(doctor=doc).values_list('patient_id', flat=True))
+                patients = User.objects.filter(role='patient', id__in=patient_ids).order_by('email')
+        else:
+            if search_q:
+                patients = User.objects.filter(role='patient').filter(
+                    Q(email__icontains=search_q) |
+                    Q(first_name__icontains=search_q) |
+                    Q(last_name__icontains=search_q)
+                ).order_by('email')
+            else:
+                patients = User.objects.filter(role='patient').order_by('email')
+
         data = []
         for p in patients:
             data.append({
@@ -266,6 +377,7 @@ class PredictView(APIView):
             # Create Scan record in database
             scan = Scan.objects.create(
                 patient=patient_user,
+                doctor=request.user,
                 image=file,
                 result=predicted_class,
                 confidence=confidence,
@@ -294,18 +406,25 @@ class ScanListView(APIView):
 
     def get(self, request, *args, **kwargs):
         user = request.user
-        if user.role in ['doctor', 'admin']:
+        if user.role == 'doctor':
+            scans = Scan.objects.filter(doctor=user).order_by('-created_at')
+        elif user.role == 'admin' or user.is_staff or user.is_superuser:
             scans = Scan.objects.all().order_by('-created_at')
         else:
             scans = Scan.objects.filter(patient=user).order_by('-created_at')
 
         data = []
         for s in scans:
+            doc_name = f"Dr. {s.doctor.first_name} {s.doctor.last_name}".strip() if s.doctor else "Attending Clinician"
+            if doc_name == "Dr." and s.doctor:
+                doc_name = f"Dr. {s.doctor.email.split('@')[0].capitalize()}"
             data.append({
                 'id': s.id,
                 'patient_id': s.patient.id,
                 'patient_name': f"{s.patient.first_name} {s.patient.last_name}".strip() or s.patient.email,
                 'patient_email': s.patient.email,
+                'doctor_id': s.doctor.id if s.doctor else None,
+                'doctor_name': doc_name,
                 'result': s.result,
                 'confidence': s.confidence,
                 'doctor_remarks': s.doctor_remarks,
@@ -315,11 +434,14 @@ class ScanListView(APIView):
         return Response(data, status=status.HTTP_200_OK)
 
     def patch(self, request, pk, *args, **kwargs):
-        if request.user.role not in ['doctor', 'admin']:
+        if request.user.role not in ['doctor', 'admin'] and not request.user.is_staff and not request.user.is_superuser:
             return Response({'error': 'Unauthorized access.'}, status=status.HTTP_403_FORBIDDEN)
         scan = Scan.objects.filter(id=pk).first()
         if not scan:
             return Response({'error': 'Scan record not found.'}, status=status.HTTP_404_NOT_FOUND)
+
+        if request.user.role == 'doctor' and scan.doctor and scan.doctor != request.user:
+            return Response({'error': 'You do not have permission to modify this scan.'}, status=status.HTTP_403_FORBIDDEN)
 
         scan.doctor_remarks = request.data.get('doctor_remarks', scan.doctor_remarks)
         scan.save()
@@ -330,11 +452,14 @@ class ScanListView(APIView):
         }, status=status.HTTP_200_OK)
 
     def delete(self, request, pk, *args, **kwargs):
-        if request.user.role not in ['doctor', 'admin']:
+        if request.user.role not in ['doctor', 'admin'] and not request.user.is_staff and not request.user.is_superuser:
             return Response({'error': 'Unauthorized access.'}, status=status.HTTP_403_FORBIDDEN)
         scan = Scan.objects.filter(id=pk).first()
         if not scan:
             return Response({'error': 'Scan record not found.'}, status=status.HTTP_404_NOT_FOUND)
+
+        if request.user.role == 'doctor' and scan.doctor and scan.doctor != request.user:
+            return Response({'error': 'You do not have permission to delete this scan.'}, status=status.HTTP_403_FORBIDDEN)
 
         # Delete image file from disk to avoid orphaned media files
         if scan.image:
@@ -352,19 +477,28 @@ class AppointmentView(APIView):
     def get(self, request, *args, **kwargs):
         user = request.user
         if user.role == 'doctor':
+            appointments = Appointment.objects.filter(doctor=user).order_by('-requested_date', '-requested_time')
+        elif user.role == 'admin' or user.is_staff or user.is_superuser:
             appointments = Appointment.objects.all().order_by('-requested_date', '-requested_time')
         else:
             appointments = Appointment.objects.filter(patient=user).order_by('-requested_date', '-requested_time')
 
         data = []
         for a in appointments:
+            doc_name = f"Dr. {a.doctor.first_name} {a.doctor.last_name}".strip() if a.doctor else "Attending Doctor"
+            if doc_name == "Dr." and a.doctor:
+                doc_name = f"Dr. {a.doctor.email.split('@')[0].capitalize()}"
+            clinic_name = a.clinic.name if a.clinic else (a.doctor.clinic.name if a.doctor and a.doctor.clinic else "Central Pulmonary Clinic")
             data.append({
                 'id': a.id,
+                'clinic_id': a.clinic.id if a.clinic else (a.doctor.clinic.id if a.doctor and a.doctor.clinic else None),
+                'clinic_name': clinic_name,
                 'patient_id': a.patient.id,
                 'patient_name': f"{a.patient.first_name} {a.patient.last_name}".strip() or a.patient.email,
                 'patient_email': a.patient.email,
-                'doctor_id': a.doctor.id,
-                'doctor_email': a.doctor.email,
+                'doctor_id': a.doctor.id if a.doctor else None,
+                'doctor_email': a.doctor.email if a.doctor else None,
+                'doctor_name': doc_name,
                 'requested_date': a.requested_date,
                 'requested_time': a.requested_time.strftime('%H:%M') if a.requested_time else None,
                 'appointment_date': a.appointment_date,
@@ -385,23 +519,36 @@ class AppointmentView(APIView):
         requested_time = request.data.get('requested_time')
         reason = request.data.get('reason')
         notes = request.data.get('notes', '')
+        clinic_id = request.data.get('clinic_id')
+        doctor_id = request.data.get('doctor_id')
 
         if not requested_date or not requested_time or not reason:
             return Response({'error': 'Date, time, and reason are required.'}, status=status.HTTP_400_BAD_REQUEST)
 
-        doctor_id = request.data.get('doctor_id')
+        clinic = None
+        if clinic_id:
+            clinic = Clinic.objects.filter(id=clinic_id).first()
+
         doctor = None
         if doctor_id:
             doctor = User.objects.filter(id=doctor_id, role='doctor').first()
+
+        if clinic and not doctor:
+            doctor = clinic.doctors.filter(role='doctor').first()
+
         if not doctor:
             doctor = User.objects.filter(role='doctor').first()
 
         if not doctor:
             return Response({'error': 'No attending doctor is available at this time.'}, status=status.HTTP_400_BAD_REQUEST)
 
+        if not clinic and doctor.clinic:
+            clinic = doctor.clinic
+
         try:
             appointment = Appointment.objects.create(
                 patient=user,
+                clinic=clinic,
                 doctor=doctor,
                 requested_date=requested_date,
                 requested_time=requested_time,
@@ -411,6 +558,10 @@ class AppointmentView(APIView):
             )
             return Response({
                 'id': appointment.id,
+                'clinic_id': clinic.id if clinic else None,
+                'clinic_name': clinic.name if clinic else None,
+                'doctor_id': doctor.id,
+                'doctor_name': f"Dr. {doctor.first_name} {doctor.last_name}".strip() or doctor.email,
                 'status': appointment.status,
                 'message': 'Appointment request submitted successfully'
             }, status=status.HTTP_201_CREATED)
@@ -422,12 +573,15 @@ class AppointmentDetailView(APIView):
     permission_classes = [IsAuthenticated]
 
     def patch(self, request, pk, *args, **kwargs):
-        if request.user.role != 'doctor':
+        if request.user.role != 'doctor' and not request.user.is_staff and not request.user.is_superuser:
             return Response({'error': 'Unauthorized access.'}, status=status.HTTP_403_FORBIDDEN)
 
         appointment = Appointment.objects.filter(id=pk).first()
         if not appointment:
             return Response({'error': 'Appointment not found.'}, status=status.HTTP_404_NOT_FOUND)
+
+        if request.user.role == 'doctor' and appointment.doctor != request.user and not request.user.is_superuser:
+            return Response({'error': 'You do not have permission to manage this appointment.'}, status=status.HTTP_403_FORBIDDEN)
 
         action = request.data.get('action')  # 'accept', 'reject', 'complete'
         doctor_notes = request.data.get('doctor_notes', '')
@@ -466,6 +620,11 @@ class PrescriptionView(APIView):
         patient_id = request.query_params.get('patient_id')
 
         if user.role == 'doctor':
+            if patient_id:
+                prescriptions = Prescription.objects.filter(doctor=user, patient_id=patient_id).order_by('-date_issued')
+            else:
+                prescriptions = Prescription.objects.filter(doctor=user).order_by('-date_issued')
+        elif user.role == 'admin' or user.is_staff or user.is_superuser:
             if patient_id:
                 prescriptions = Prescription.objects.filter(patient_id=patient_id).order_by('-date_issued')
             else:
@@ -532,6 +691,11 @@ class MedicalHistoryView(APIView):
             if patient_id:
                 history = MedicalHistory.objects.filter(patient_id=patient_id).order_by('-diagnosis_date')
             else:
+                history = MedicalHistory.objects.filter(doctor=user).order_by('-diagnosis_date')
+        elif user.role == 'admin' or user.is_staff or user.is_superuser:
+            if patient_id:
+                history = MedicalHistory.objects.filter(patient_id=patient_id).order_by('-diagnosis_date')
+            else:
                 history = MedicalHistory.objects.all().order_by('-diagnosis_date')
         else:
             history = MedicalHistory.objects.filter(patient=user).order_by('-diagnosis_date')
@@ -570,6 +734,7 @@ class MedicalHistoryView(APIView):
         try:
             history = MedicalHistory.objects.create(
                 patient=patient,
+                doctor=request.user,
                 condition=condition,
                 diagnosis_date=diagnosis_date,
                 treatment=treatment,
@@ -640,6 +805,8 @@ class AdminDoctorsView(APIView):
                 'last_name': d.last_name,
                 'contact_number': d.contact_number,
                 'address': d.address,
+                'clinic_id': d.clinic.id if d.clinic else None,
+                'clinic_name': d.clinic.name if d.clinic else 'Unassigned',
                 'date_joined': d.date_joined
             })
         return Response(data, status=status.HTTP_200_OK)
@@ -654,6 +821,7 @@ class AdminDoctorsView(APIView):
         last_name = request.data.get('last_name', '')
         contact_number = request.data.get('contact_number', '')
         address = request.data.get('address', '')
+        clinic_id = request.data.get('clinic_id')
 
         if not email or not password:
             return Response({'error': 'Email and password are required.'}, status=status.HTTP_400_BAD_REQUEST)
@@ -662,6 +830,10 @@ class AdminDoctorsView(APIView):
 
         if User.objects.filter(email=email).exists() or User.objects.filter(username=email).exists():
             return Response({'error': 'A user with this email already exists.'}, status=status.HTTP_400_BAD_REQUEST)
+
+        clinic = None
+        if clinic_id:
+            clinic = Clinic.objects.filter(id=clinic_id).first()
 
         try:
             doctor = User.objects.create_user(
@@ -672,11 +844,14 @@ class AdminDoctorsView(APIView):
                 last_name=last_name,
                 contact_number=contact_number,
                 address=address,
+                clinic=clinic,
                 role='doctor'
             )
             return Response({
                 'id': doctor.id,
                 'email': doctor.email,
+                'clinic_id': clinic.id if clinic else None,
+                'clinic_name': clinic.name if clinic else 'Unassigned',
                 'message': 'Doctor added successfully'
             }, status=status.HTTP_201_CREATED)
         except Exception as e:
