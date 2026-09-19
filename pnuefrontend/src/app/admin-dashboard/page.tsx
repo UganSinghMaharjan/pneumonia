@@ -53,6 +53,8 @@ interface Doctor {
   last_name: string;
   contact_number: string;
   address: string;
+  clinic_id?: number | null;
+  clinic_name?: string | null;
   date_joined: string;
 }
 
@@ -93,6 +95,7 @@ export default function AdminDashboard({ initialTab = "overview" }: { initialTab
 
   // Doctors State
   const [doctors, setDoctors] = useState<Doctor[]>([]);
+  const [clinics, setClinics] = useState<any[]>([]);
   const [loadingDoctors, setLoadingDoctors] = useState(false);
   const [doctorSearch, setDoctorSearch] = useState("");
   const [showAddDoctorModal, setShowAddDoctorModal] = useState(false);
@@ -102,7 +105,8 @@ export default function AdminDashboard({ initialTab = "overview" }: { initialTab
     first_name: "",
     last_name: "",
     contact_number: "",
-    address: ""
+    address: "",
+    clinic_id: "",
   });
 
   // Patients State
@@ -146,6 +150,7 @@ export default function AdminDashboard({ initialTab = "overview" }: { initialTab
     setUsername(storedUsername || "Admin User");
     fetchStats();
     fetchDoctors();
+    fetchClinics();
     fetchPatients();
     fetchScans();
   }, [router]);
@@ -187,6 +192,15 @@ export default function AdminDashboard({ initialTab = "overview" }: { initialTab
     }
   };
 
+  const fetchClinics = async () => {
+    try {
+      const res = await axios.get("/backend/clinics/");
+      setClinics(res.data);
+    } catch (err) {
+      console.error("Failed to fetch clinics", err);
+    }
+  };
+
   const fetchPatients = async () => {
     try {
       setLoadingPatients(true);
@@ -225,7 +239,8 @@ export default function AdminDashboard({ initialTab = "overview" }: { initialTab
         first_name: "",
         last_name: "",
         contact_number: "",
-        address: ""
+        address: "",
+        clinic_id: "",
       });
       fetchDoctors();
       fetchStats();
@@ -756,7 +771,12 @@ export default function AdminDashboard({ initialTab = "overview" }: { initialTab
                               {doc.contact_number || "Not provided"}
                             </td>
                             <td className="py-4 px-6 text-brand-muted">
-                              {doc.address || "Main Medical Center"}
+                              <span className="inline-flex items-center px-2 py-0.5 rounded text-xs font-bold bg-brand-indigo/10 text-brand-indigo mb-1">
+                                {doc.clinic_name || "Unassigned"}
+                              </span>
+                              <span className="block text-[11px] text-brand-muted">
+                                {doc.address || "Main Medical Center"}
+                              </span>
                             </td>
                             <td className="py-4 px-6 text-right">
                               <button
@@ -1115,11 +1135,29 @@ export default function AdminDashboard({ initialTab = "overview" }: { initialTab
 
               <div>
                 <label className="block text-xs font-semibold text-brand-muted uppercase mb-1">
-                  Clinic / Hospital Department
+                  Assign Clinic / Medical Center
+                </label>
+                <select
+                  value={newDoctor.clinic_id}
+                  onChange={(e) => setNewDoctor({ ...newDoctor, clinic_id: e.target.value })}
+                  className="w-full bg-brand-surface border border-brand-border rounded-lg p-2.5 text-sm text-brand-navy focus:outline-none focus:border-brand-indigo font-medium"
+                >
+                  <option value="">-- Choose Clinic Center --</option>
+                  {clinics.map((c) => (
+                    <option key={c.id} value={c.id}>
+                      {c.name} {c.specialty ? `• ${c.specialty}` : ""}
+                    </option>
+                  ))}
+                </select>
+              </div>
+
+              <div>
+                <label className="block text-xs font-semibold text-brand-muted uppercase mb-1">
+                  Department / Room Notes
                 </label>
                 <input
                   type="text"
-                  placeholder="Pulmonology Wing B"
+                  placeholder="e.g. Pulmonology Wing B, Room 302"
                   value={newDoctor.address}
                   onChange={(e) => setNewDoctor({ ...newDoctor, address: e.target.value })}
                   className="w-full bg-brand-surface border border-brand-border rounded-lg p-2.5 text-sm text-brand-navy focus:outline-none focus:border-brand-indigo"

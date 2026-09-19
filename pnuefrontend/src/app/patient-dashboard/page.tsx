@@ -1054,7 +1054,7 @@ export default function PatientDashboard() {
                         <button
                           onClick={() =>
                             router.push(
-                              `/patient-dashboard/appointments?ref=${encodeURIComponent(hospital.name)}`,
+                              `/patient-dashboard/appointments?clinic_id=${hospital.id}&ref=${encodeURIComponent(hospital.name)}`,
                             )
                           }
                           className="w-full bg-brand-indigo hover:bg-[#2a2853] text-white text-xs font-bold py-2 rounded-lg flex items-center justify-center space-x-1 transition-colors mt-auto active:scale-95"

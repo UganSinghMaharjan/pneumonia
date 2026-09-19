@@ -35,7 +35,9 @@ export default function DoctorSettingsPage() {
       setAuthorized(true);
 
       axios
-        .get("/backend/user")
+        .get("/backend/user", {
+          headers: { Authorization: `Token ${storedToken}` },
+        })
         .then((res) => {
           setProfile(res.data);
         })

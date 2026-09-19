@@ -2,6 +2,16 @@ from django.db import models
 from django.contrib.auth.models import AbstractUser
 from django.conf import settings
 
+class Clinic(models.Model):
+    name = models.CharField(max_length=255)
+    address = models.TextField()
+    phone = models.CharField(max_length=50, blank=True, null=True)
+    specialty = models.CharField(max_length=255, blank=True, null=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    def __str__(self):
+        return self.name
+
 class User(AbstractUser):
     ROLE_CHOICES = (
         ('admin', 'admin'),
@@ -9,6 +19,7 @@ class User(AbstractUser):
         ('patient', 'patient'),
     )
     role = models.CharField(max_length=10, choices=ROLE_CHOICES, default='patient')
+    clinic = models.ForeignKey(Clinic, on_delete=models.SET_NULL, null=True, blank=True, related_name='doctors')
     age = models.IntegerField(null=True, blank=True)
     gender = models.CharField(max_length=10, null=True, blank=True)
     contact_number = models.CharField(max_length=20, null=True, blank=True)
@@ -25,6 +36,7 @@ class Appointment(models.Model):
         ('Rejected', 'Rejected'),
         ('Completed', 'Completed'),
     )
+    clinic = models.ForeignKey(Clinic, on_delete=models.SET_NULL, null=True, blank=True, related_name='appointments')
     patient = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name='appointments')
     doctor = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name='doctor_appointments')
     requested_date = models.DateField()
@@ -41,6 +53,7 @@ class Appointment(models.Model):
 
 class Scan(models.Model):
     patient = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name='scans')
+    doctor = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.SET_NULL, null=True, blank=True, related_name='doctor_scans')
     image = models.ImageField(upload_to='scans/')
     result = models.CharField(max_length=50)  
     confidence = models.FloatField()
@@ -64,6 +77,7 @@ class Prescription(models.Model):
 
 class MedicalHistory(models.Model):
     patient = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name='medical_histories')
+    doctor = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.SET_NULL, null=True, blank=True, related_name='doctor_medical_histories')
     condition = models.CharField(max_length=255)
     diagnosis_date = models.DateField()
     treatment = models.TextField(null=True, blank=True)
