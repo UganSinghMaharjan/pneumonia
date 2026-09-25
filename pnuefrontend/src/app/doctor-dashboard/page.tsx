@@ -224,7 +224,7 @@ export default function DoctorDashboard() {
     (scan) => scan.result === "Normal",
   ).length;
   const pneumoniaDetected = recentScans.filter(
-    (scan) => scan.result === "Pneumonia",
+    (scan) => scan.result !== "Normal",
   ).length;
 
   return (
@@ -470,9 +470,9 @@ export default function DoctorDashboard() {
                       <div className="space-y-6 animate-in fade-in duration-500 flex-1 flex flex-col justify-between">
                         <div
                           className={`p-6 rounded-xl border flex items-center justify-between ${
-                            result.predicted_class === "Normal"
-                              ? "bg-brand-teal/5 border-brand-teal/20"
-                              : "bg-rose-50 border-rose-200"
+                            result.predicted_class === "Pneumonia"
+                              ? "bg-rose-50 border-rose-200"
+                              : "bg-brand-teal/5 border-brand-teal/20"
                           }`}
                         >
                           <div>
@@ -481,9 +481,9 @@ export default function DoctorDashboard() {
                             </span>
                             <h4
                               className={`text-3xl font-black mt-1 ${
-                                result.predicted_class === "Normal"
-                                  ? "text-brand-teal"
-                                  : "text-rose-600"
+                                result.predicted_class === "Pneumonia"
+                                  ? "text-rose-600"
+                                  : "text-brand-teal"
                               }`}
                             >
                               {result.predicted_class.toUpperCase()}
@@ -496,9 +496,9 @@ export default function DoctorDashboard() {
                             <div className="flex items-center space-x-2 mt-1 justify-end">
                               <CheckCircle
                                 className={`w-5 h-5 ${
-                                  result.predicted_class === "Normal"
-                                    ? "text-brand-teal"
-                                    : "text-rose-500"
+                                  result.predicted_class === "Pneumonia"
+                                    ? "text-rose-500"
+                                    : "text-brand-teal"
                                 }`}
                               />
                               <span className="text-2xl font-black text-brand-navy">
@@ -596,9 +596,9 @@ export default function DoctorDashboard() {
                           <td className="px-6 py-4">
                             <span
                               className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-[10px] font-bold border ${
-                                row.result === "Normal"
-                                  ? "bg-emerald-50 text-emerald-700 border-emerald-200"
-                                  : "bg-rose-50 text-rose-700 border-rose-200"
+                                row.result === "Pneumonia"
+                                  ? "bg-rose-50 text-rose-700 border-rose-200"
+                                  : "bg-emerald-50 text-emerald-700 border-emerald-200"
                               }`}
                             >
                               {row.result}

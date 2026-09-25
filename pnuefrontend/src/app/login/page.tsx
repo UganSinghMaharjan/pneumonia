@@ -12,12 +12,15 @@ import {
   ArrowRight,
   Loader2,
   AlertCircle,
+  Phone,
 } from "lucide-react";
+import { validateContactNumber, validatePassword } from "@/utils/validation";
 
 export default function Login() {
   const [isLogin, setIsLogin] = useState(true);
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [contactNumber, setContactNumber] = useState("");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
@@ -44,14 +47,33 @@ export default function Login() {
     setError(null);
     setLoading(true);
 
-    const url = isLogin
-      ? "/backend/login"
-      : "/backend/register";
+    if (!isLogin) {
+      const passErr = validatePassword(password);
+      if (passErr) {
+        setError(passErr);
+        setLoading(false);
+        return;
+      }
+      if (contactNumber) {
+        const contactErr = validateContactNumber(contactNumber);
+        if (contactErr) {
+          setError(contactErr);
+          setLoading(false);
+          return;
+        }
+      }
+    }
 
-    const payload = {
+    const url = isLogin ? "/backend/login" : "/backend/register";
+
+    const payload: any = {
       email: email.trim().toLowerCase(),
       password,
     };
+
+    if (!isLogin && contactNumber) {
+      payload.contact_number = contactNumber;
+    }
 
     try {
       const response = await axios.post(url, payload);
@@ -171,10 +193,50 @@ export default function Login() {
                   placeholder="••••••••"
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
-                  className="w-full pl-10 pr-4 py-3 bg-brand-surface border border-brand-border rounded-lg text-brand-navy placeholder:text-brand-muted text-sm outline-none transition-all duration-200 focus:border-brand-indigo focus:ring-2 focus:ring-brand-indigo/20"
+                  className={`w-full pl-10 pr-4 py-3 bg-brand-surface border ${
+                    !isLogin && validatePassword(password)
+                      ? "border-red-400 focus:ring-red-400"
+                      : "border-brand-border focus:border-brand-indigo focus:ring-brand-indigo/20"
+                  } rounded-lg text-brand-navy placeholder:text-brand-muted text-sm outline-none transition-all duration-200 focus:ring-2`}
                 />
               </div>
+              {!isLogin && validatePassword(password) && (
+                <p className="text-[11px] text-red-500 mt-1 font-medium">
+                  {validatePassword(password)}
+                </p>
+              )}
             </div>
+
+            {/* Contact Number Input (Registration only) */}
+            {!isLogin && (
+              <div>
+                <label className="block text-xs font-semibold text-brand-muted uppercase tracking-wider mb-2">
+                  Contact Phone Number (Optional)
+                </label>
+                <div className="relative">
+                  <span className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-brand-muted">
+                    <Phone className="w-4 h-4" />
+                  </span>
+                  <input
+                    type="text"
+                    maxLength={10}
+                    placeholder="e.g. 9800000000"
+                    value={contactNumber}
+                    onChange={(e) => setContactNumber(e.target.value.replace(/\D/g, ""))}
+                    className={`w-full pl-10 pr-4 py-3 bg-brand-surface border ${
+                      validateContactNumber(contactNumber)
+                        ? "border-red-400 focus:ring-red-400"
+                        : "border-brand-border focus:border-brand-indigo focus:ring-brand-indigo/20"
+                    } rounded-lg text-brand-navy placeholder:text-brand-muted text-sm outline-none transition-all duration-200 focus:ring-2`}
+                  />
+                </div>
+                {validateContactNumber(contactNumber) && (
+                  <p className="text-[11px] text-red-500 mt-1 font-medium">
+                    {validateContactNumber(contactNumber)}
+                  </p>
+                )}
+              </div>
+            )}
 
             {/* Submit Button */}
             <button
@@ -204,6 +266,7 @@ export default function Login() {
                 setError(null);
                 setEmail("");
                 setPassword("");
+                setContactNumber("");
               }}
               className="text-sm font-semibold text-brand-indigo hover:text-brand-lavender transition-colors"
             >

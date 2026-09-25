@@ -31,7 +31,7 @@ export function downloadDiagnosticReport(data: ReportData) {
   }
 
   const confidencePct = (data.scan_confidence * 100).toFixed(1);
-  const isPneumonia = data.scan_result.toLowerCase() === "pneumonia";
+  const isPneumonia = data.scan_result.toLowerCase() !== "normal";
   const formattedDate = new Date(data.scan_date).toLocaleString();
 
   const prescriptionsHtml =

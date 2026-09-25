@@ -22,7 +22,7 @@ class User(AbstractUser):
     clinic = models.ForeignKey(Clinic, on_delete=models.SET_NULL, null=True, blank=True, related_name='doctors')
     age = models.IntegerField(null=True, blank=True)
     gender = models.CharField(max_length=10, null=True, blank=True)
-    contact_number = models.CharField(max_length=20, null=True, blank=True)
+    contact_number = models.CharField(max_length=10, null=True, blank=True)
     address = models.TextField(null=True, blank=True)
     blood_group = models.CharField(max_length=5, null=True, blank=True)
 

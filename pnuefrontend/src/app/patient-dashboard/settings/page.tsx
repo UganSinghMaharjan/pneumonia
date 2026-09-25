@@ -13,6 +13,7 @@ import {
   Check,
   AlertCircle,
 } from "lucide-react";
+import { validateContactNumber } from "@/utils/validation";
 
 interface UserProfile {
   id: number;
@@ -91,6 +92,12 @@ export default function PatientSettingsPage() {
     e.preventDefault();
     if (!token) return;
 
+    const contactErr = validateContactNumber(form.contact_number);
+    if (contactErr) {
+      alert(contactErr);
+      return;
+    }
+
     setSubmitLoading(true);
     setSuccess(false);
     try {
@@ -109,9 +116,10 @@ export default function PatientSettingsPage() {
       );
       setSuccess(true);
       setTimeout(() => setSuccess(false), 3000);
-    } catch (err) {
+    } catch (err: any) {
       console.error("Failed to update profile settings", err);
-      alert("Failed to save changes. Please try again.");
+      const msg = err.response?.data?.error || "Failed to save changes. Please try again.";
+      alert(msg);
     } finally {
       setSubmitLoading(false);
     }
@@ -252,12 +260,23 @@ export default function PatientSettingsPage() {
                     </label>
                     <input
                       type="text"
+                      maxLength={10}
+                      placeholder="e.g. 9800000000"
                       value={form.contact_number}
                       onChange={(e) =>
-                        setForm({ ...form, contact_number: e.target.value })
+                        setForm({ ...form, contact_number: e.target.value.replace(/\D/g, "") })
                       }
-                      className="w-full bg-brand-surface border border-transparent rounded-lg px-3.5 py-2.5 text-sm text-brand-navy focus:outline-none focus:ring-1 focus:ring-brand-indigo"
+                      className={`w-full bg-brand-surface border ${
+                        validateContactNumber(form.contact_number)
+                          ? "border-red-400 focus:ring-red-400"
+                          : "border-transparent focus:ring-brand-indigo"
+                      } rounded-lg px-3.5 py-2.5 text-sm text-brand-navy focus:outline-none focus:ring-1`}
                     />
+                    {validateContactNumber(form.contact_number) && (
+                      <p className="text-[11px] text-red-500 mt-1 font-medium">
+                        {validateContactNumber(form.contact_number)}
+                      </p>
+                    )}
                   </div>
 
                   <div className="md:col-span-2">

@@ -1,4 +1,5 @@
 import os
+import re
 import numpy as np
 from django.conf import settings
 from django.contrib.auth import authenticate
@@ -15,6 +16,27 @@ import io
 
 from django.db.models import Q
 from .models import User, Appointment, Scan, Prescription, MedicalHistory, Clinic
+
+def validate_contact_number(contact_number):
+    if not contact_number:
+        return True, None
+    contact_str = str(contact_number).strip()
+    if not contact_str:
+        return True, None
+    if not re.match(r'^[0-9]{10}$', contact_str):
+        return False, "Contact number must be exactly 10 digits."
+    return True, None
+
+def validate_password(password):
+    if not password or not str(password).strip():
+        return False, "Password is required."
+    p_str = str(password)
+    if len(p_str) < 6:
+        return False, "Password must be at least 6 characters long."
+    if not re.search(r'[A-Za-z]', p_str) or not re.search(r'[0-9]', p_str):
+        return False, "Password must contain both letters and numbers."
+    return True, None
+
 
 class ClinicListView(APIView):
     def get(self, request, *args, **kwargs):
@@ -130,6 +152,15 @@ class RegisterView(APIView):
         if not email or not password:
             return Response({'error': 'Email and password are required.'}, status=status.HTTP_400_BAD_REQUEST)
 
+        is_p_valid, p_err_msg = validate_password(password)
+        if not is_p_valid:
+            return Response({'error': p_err_msg}, status=status.HTTP_400_BAD_REQUEST)
+
+        if contact_number:
+            is_valid, err_msg = validate_contact_number(contact_number)
+            if not is_valid:
+                return Response({'error': err_msg}, status=status.HTTP_400_BAD_REQUEST)
+
         if User.objects.filter(email=email).exists() or User.objects.filter(username=email).exists():
             return Response({'error': 'Email already exists.'}, status=status.HTTP_400_BAD_REQUEST)
 
@@ -214,7 +245,12 @@ class UserProfileView(APIView):
             except ValueError:
                 pass
         user.gender = request.data.get('gender', user.gender)
-        user.contact_number = request.data.get('contact_number', user.contact_number)
+        contact_num = request.data.get('contact_number', user.contact_number)
+        if contact_num:
+            is_valid, err_msg = validate_contact_number(contact_num)
+            if not is_valid:
+                return Response({'error': err_msg}, status=status.HTTP_400_BAD_REQUEST)
+        user.contact_number = contact_num
         user.address = request.data.get('address', user.address)
         user.blood_group = request.data.get('blood_group', user.blood_group)
         user.save()
@@ -357,22 +393,23 @@ class PredictView(APIView):
             else:
                 prob_normal, prob_pneumonia = 0.5, 0.5
 
-            if prob_pneumonia > prob_normal:
+            # Handle both 0-1 probability and 0-100 percentage scale seamlessly
+            p_val = prob_pneumonia if prob_pneumonia <= 1.0 else prob_pneumonia / 100.0
+
+            # Classification threshold:
+            # <= 80% (0.80) -> 'Symptoms of Pneumonia'
+            # > 80% (0.80) -> 'Pneumonia'
+            if p_val > 0.80:
                 predicted_class = 'Pneumonia'
-                confidence = prob_pneumonia
             else:
-                predicted_class = 'Normal'
-                confidence = prob_normal
+                predicted_class = 'Symptoms of Pneumonia'
+
+            confidence = prob_pneumonia
 
             probabilities = {
                 'Normal': prob_normal,
                 'Pneumonia': prob_pneumonia
             }
-
-            # Gatekeeper Check 2: Confidence Thresholding (threshold = 0.85)
-            CONFIDENCE_THRESHOLD = 0.85
-            if confidence < CONFIDENCE_THRESHOLD:
-                predicted_class = 'Pnuemonia'
 
             # Create Scan record in database
             scan = Scan.objects.create(
@@ -760,7 +797,7 @@ class AdminStatsView(APIView):
         total_patients = User.objects.filter(role='patient').count()
         total_scans = Scan.objects.count()
         normal_scans = Scan.objects.filter(result='Normal').count()
-        pneumonia_scans = Scan.objects.filter(result='Pneumonia').count()
+        pneumonia_scans = Scan.objects.exclude(result='Normal').count()
         total_appointments = Appointment.objects.count()
         pending_appointments = Appointment.objects.filter(status='Pending').count()
 
@@ -826,6 +863,15 @@ class AdminDoctorsView(APIView):
         if not email or not password:
             return Response({'error': 'Email and password are required.'}, status=status.HTTP_400_BAD_REQUEST)
 
+        is_p_valid, p_err_msg = validate_password(password)
+        if not is_p_valid:
+            return Response({'error': p_err_msg}, status=status.HTTP_400_BAD_REQUEST)
+
+        if contact_number:
+            is_valid, err_msg = validate_contact_number(contact_number)
+            if not is_valid:
+                return Response({'error': err_msg}, status=status.HTTP_400_BAD_REQUEST)
+
         email = email.strip().lower()
 
         if User.objects.filter(email=email).exists() or User.objects.filter(username=email).exists():
@@ -856,6 +902,55 @@ class AdminDoctorsView(APIView):
             }, status=status.HTTP_201_CREATED)
         except Exception as e:
             return Response({'error': str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+    def patch(self, request, pk, *args, **kwargs):
+        if request.user.role != 'admin' and not request.user.is_staff and not request.user.is_superuser:
+            return Response({'error': 'Unauthorized access.'}, status=status.HTTP_403_FORBIDDEN)
+
+        doctor = User.objects.filter(id=pk, role='doctor').first()
+        if not doctor:
+            return Response({'error': 'Doctor record not found.'}, status=status.HTTP_404_NOT_FOUND)
+
+        email = request.data.get('email')
+        if email:
+            email = email.strip().lower()
+            if User.objects.filter(email=email).exclude(id=doctor.id).exists() or User.objects.filter(username=email).exclude(id=doctor.id).exists():
+                return Response({'error': 'A user with this email already exists.'}, status=status.HTTP_400_BAD_REQUEST)
+            doctor.email = email
+            doctor.username = email
+
+        if 'first_name' in request.data:
+            doctor.first_name = request.data.get('first_name', '')
+        if 'last_name' in request.data:
+            doctor.last_name = request.data.get('last_name', '')
+        if 'contact_number' in request.data:
+            contact_num = request.data.get('contact_number', '')
+            if contact_num:
+                is_valid, err_msg = validate_contact_number(contact_num)
+                if not is_valid:
+                    return Response({'error': err_msg}, status=status.HTTP_400_BAD_REQUEST)
+            doctor.contact_number = contact_num
+        if 'address' in request.data:
+            doctor.address = request.data.get('address', '')
+        if 'clinic_id' in request.data:
+            clinic_id = request.data.get('clinic_id')
+            if clinic_id:
+                doctor.clinic = Clinic.objects.filter(id=clinic_id).first()
+            else:
+                doctor.clinic = None
+
+        doctor.save()
+        return Response({
+            'id': doctor.id,
+            'email': doctor.email,
+            'first_name': doctor.first_name,
+            'last_name': doctor.last_name,
+            'contact_number': doctor.contact_number,
+            'address': doctor.address,
+            'clinic_id': doctor.clinic.id if doctor.clinic else None,
+            'clinic_name': doctor.clinic.name if doctor.clinic else 'Unassigned',
+            'message': 'Doctor updated successfully'
+        }, status=status.HTTP_200_OK)
 
     def delete(self, request, pk, *args, **kwargs):
         if request.user.role != 'admin' and not request.user.is_staff and not request.user.is_superuser:
@@ -911,6 +1006,15 @@ class AdminPatientsView(APIView):
         if not email or not password:
             return Response({'error': 'Email and password are required.'}, status=status.HTTP_400_BAD_REQUEST)
 
+        is_p_valid, p_err_msg = validate_password(password)
+        if not is_p_valid:
+            return Response({'error': p_err_msg}, status=status.HTTP_400_BAD_REQUEST)
+
+        if contact_number:
+            is_valid, err_msg = validate_contact_number(contact_number)
+            if not is_valid:
+                return Response({'error': err_msg}, status=status.HTTP_400_BAD_REQUEST)
+
         email = email.strip().lower()
 
         if User.objects.filter(email=email).exists() or User.objects.filter(username=email).exists():
@@ -938,6 +1042,57 @@ class AdminPatientsView(APIView):
         except Exception as e:
             return Response({'error': str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
+    def patch(self, request, pk, *args, **kwargs):
+        if request.user.role != 'admin' and not request.user.is_staff and not request.user.is_superuser:
+            return Response({'error': 'Unauthorized access.'}, status=status.HTTP_403_FORBIDDEN)
+
+        patient = User.objects.filter(id=pk, role='patient').first()
+        if not patient:
+            return Response({'error': 'Patient record not found.'}, status=status.HTTP_404_NOT_FOUND)
+
+        email = request.data.get('email')
+        if email:
+            email = email.strip().lower()
+            if User.objects.filter(email=email).exclude(id=patient.id).exists() or User.objects.filter(username=email).exclude(id=patient.id).exists():
+                return Response({'error': 'A user with this email already exists.'}, status=status.HTTP_400_BAD_REQUEST)
+            patient.email = email
+            patient.username = email
+
+        if 'first_name' in request.data:
+            patient.first_name = request.data.get('first_name', '')
+        if 'last_name' in request.data:
+            patient.last_name = request.data.get('last_name', '')
+        if 'age' in request.data:
+            age_val = request.data.get('age')
+            patient.age = int(age_val) if age_val is not None and str(age_val).isdigit() else None
+        if 'gender' in request.data:
+            patient.gender = request.data.get('gender', '')
+        if 'contact_number' in request.data:
+            contact_num = request.data.get('contact_number', '')
+            if contact_num:
+                is_valid, err_msg = validate_contact_number(contact_num)
+                if not is_valid:
+                    return Response({'error': err_msg}, status=status.HTTP_400_BAD_REQUEST)
+            patient.contact_number = contact_num
+        if 'address' in request.data:
+            patient.address = request.data.get('address', '')
+        if 'blood_group' in request.data:
+            patient.blood_group = request.data.get('blood_group', '')
+
+        patient.save()
+        return Response({
+            'id': patient.id,
+            'email': patient.email,
+            'first_name': patient.first_name,
+            'last_name': patient.last_name,
+            'age': patient.age,
+            'gender': patient.gender,
+            'contact_number': patient.contact_number,
+            'address': patient.address,
+            'blood_group': patient.blood_group,
+            'message': 'Patient updated successfully'
+        }, status=status.HTTP_200_OK)
+
     def delete(self, request, pk, *args, **kwargs):
         if request.user.role != 'admin' and not request.user.is_staff and not request.user.is_superuser:
             return Response({'error': 'Unauthorized access.'}, status=status.HTTP_403_FORBIDDEN)
@@ -948,4 +1103,5 @@ class AdminPatientsView(APIView):
 
         patient.delete()
         return Response({'message': 'Patient deleted successfully.'}, status=status.HTTP_200_OK)
+
 

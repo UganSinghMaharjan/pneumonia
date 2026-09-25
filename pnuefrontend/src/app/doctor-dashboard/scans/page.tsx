@@ -42,7 +42,7 @@ export default function DoctorScansPage() {
 
   const [scans, setScans] = useState<ScanRecord[]>([]);
   const [searchQuery, setSearchQuery] = useState("");
-  const [filterResult, setFilterResult] = useState<"All" | "Normal" | "Pneumonia">("All");
+  const [filterResult, setFilterResult] = useState<"All" | "Normal" | "Symptoms of Pneumonia" | "Pneumonia">("All");
 
   // Edit Remarks State
   const [editingScanId, setEditingScanId] = useState<number | null>(null);
@@ -182,7 +182,9 @@ export default function DoctorScansPage() {
       scan.patient_name.toLowerCase().includes(searchQuery.toLowerCase()) ||
       scan.patient_email.toLowerCase().includes(searchQuery.toLowerCase()) ||
       scan.result.toLowerCase().includes(searchQuery.toLowerCase());
-    const matchesFilter = filterResult === "All" || scan.result === filterResult;
+    const matchesFilter =
+      filterResult === "All" ||
+      scan.result.toLowerCase() === filterResult.toLowerCase();
     return matchesSearch && matchesFilter;
   });
 
@@ -218,11 +220,11 @@ export default function DoctorScansPage() {
               </div>
 
               <div className="flex border border-brand-border rounded-lg overflow-hidden bg-brand-white">
-                {(["All", "Normal", "Pneumonia"] as const).map((opt) => (
+                {(["All", "Normal", "Symptoms of Pneumonia", "Pneumonia"] as const).map((opt) => (
                   <button
                     key={opt}
                     onClick={() => setFilterResult(opt)}
-                    className={`px-4 py-2 text-xs font-bold uppercase transition-all ${
+                    className={`px-3 py-2 text-xs font-bold uppercase transition-all ${
                       filterResult === opt
                         ? "bg-brand-indigo text-white"
                         : "text-brand-muted hover:bg-brand-surface"

@@ -6,6 +6,7 @@ import axios from "axios";
 import { Sidebar } from "@/components/Sidebar";
 import { Topbar } from "@/components/Topbar";
 import { useToast } from "@/context/ToastContext";
+import { validateContactNumber } from "@/utils/validation";
 import {
   User,
   Calendar,
@@ -227,6 +228,12 @@ export default function PatientDashboard() {
   const handleUpdateProfile = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!token) return;
+
+    const contactErr = validateContactNumber(editForm.contact_number);
+    if (contactErr) {
+      toast.error(contactErr, "Invalid Contact Number");
+      return;
+    }
 
     try {
       const headers = { Authorization: `Token ${token}` };
@@ -470,15 +477,26 @@ export default function PatientDashboard() {
                           </label>
                           <input
                             type="text"
+                            maxLength={10}
+                            placeholder="e.g. 9800000000"
                             value={editForm.contact_number}
                             onChange={(e) =>
                               setEditForm({
                                 ...editForm,
-                                contact_number: e.target.value,
+                                contact_number: e.target.value.replace(/\D/g, ""),
                               })
                             }
-                            className="w-full bg-brand-surface border border-transparent rounded-lg px-3 py-2 text-sm text-brand-navy focus:outline-none focus:ring-1 focus:ring-brand-indigo"
+                            className={`w-full bg-brand-surface border ${
+                              validateContactNumber(editForm.contact_number)
+                                ? "border-red-400 focus:ring-red-400"
+                                : "border-transparent focus:ring-brand-indigo"
+                            } rounded-lg px-3 py-2 text-sm text-brand-navy focus:outline-none focus:ring-1`}
                           />
+                          {validateContactNumber(editForm.contact_number) && (
+                            <p className="text-[11px] text-red-500 mt-1 font-medium">
+                              {validateContactNumber(editForm.contact_number)}
+                            </p>
+                          )}
                         </div>
                       </div>
 

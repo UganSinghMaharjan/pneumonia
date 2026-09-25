@@ -7,6 +7,7 @@ import { Sidebar } from "@/components/Sidebar";
 import { Topbar } from "@/components/Topbar";
 import { useToast } from "@/context/ToastContext";
 import { downloadDiagnosticReport } from "@/utils/downloadReport";
+import { validateContactNumber, validatePassword } from "@/utils/validation";
 import {
   Users,
   Stethoscope,
@@ -25,7 +26,8 @@ import {
   ChevronRight,
   TrendingUp,
   UserPlus,
-  Download
+  Download,
+  Pencil
 } from "lucide-react";
 
 interface AdminStats {
@@ -109,6 +111,17 @@ export default function AdminDashboard({ initialTab = "overview" }: { initialTab
     clinic_id: "",
   });
 
+  // Edit Doctor State
+  const [editingDoctor, setEditingDoctor] = useState<Doctor | null>(null);
+  const [editDoctorForm, setEditDoctorForm] = useState({
+    email: "",
+    first_name: "",
+    last_name: "",
+    contact_number: "",
+    address: "",
+    clinic_id: "",
+  });
+
   // Patients State
   const [patients, setPatients] = useState<Patient[]>([]);
   const [loadingPatients, setLoadingPatients] = useState(false);
@@ -126,10 +139,23 @@ export default function AdminDashboard({ initialTab = "overview" }: { initialTab
     blood_group: "O+"
   });
 
+  // Edit Patient State
+  const [editingPatient, setEditingPatient] = useState<Patient | null>(null);
+  const [editPatientForm, setEditPatientForm] = useState({
+    email: "",
+    first_name: "",
+    last_name: "",
+    age: "",
+    gender: "Other",
+    contact_number: "",
+    address: "",
+    blood_group: "O+"
+  });
+
   // Scans State
   const [scans, setScans] = useState<ScanRecord[]>([]);
   const [loadingScans, setLoadingScans] = useState(false);
-  const [scanFilter, setScanFilter] = useState<"ALL" | "Pneumonia" | "Normal">("ALL");
+  const [scanFilter, setScanFilter] = useState<"ALL" | "Pneumonia" | "Symptoms of Pneumonia" | "Normal">("ALL");
   const [scanSearch, setScanSearch] = useState("");
   const [selectedScan, setSelectedScan] = useState<ScanRecord | null>(null);
 
@@ -228,6 +254,19 @@ export default function AdminDashboard({ initialTab = "overview" }: { initialTab
   const handleAddDoctor = async (e: React.FormEvent) => {
     e.preventDefault();
     setModalError(null);
+
+    const passErr = validatePassword(newDoctor.password);
+    if (passErr) {
+      setModalError(passErr);
+      return;
+    }
+
+    const contactErr = validateContactNumber(newDoctor.contact_number);
+    if (contactErr) {
+      setModalError(contactErr);
+      return;
+    }
+
     setModalLoading(true);
 
     try {
@@ -267,9 +306,65 @@ export default function AdminDashboard({ initialTab = "overview" }: { initialTab
     }
   };
 
+  const handleOpenEditDoctor = (doc: Doctor) => {
+    setModalError(null);
+    setEditDoctorForm({
+      email: doc.email || "",
+      first_name: doc.first_name || "",
+      last_name: doc.last_name || "",
+      contact_number: doc.contact_number || "",
+      address: doc.address || "",
+      clinic_id: doc.clinic_id ? String(doc.clinic_id) : "",
+    });
+    setEditingDoctor(doc);
+  };
+
+  const handleUpdateDoctor = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!editingDoctor) return;
+    setModalError(null);
+
+    const contactErr = validateContactNumber(editDoctorForm.contact_number);
+    if (contactErr) {
+      setModalError(contactErr);
+      return;
+    }
+
+    setModalLoading(true);
+
+    try {
+      await axios.patch(`/backend/admin/doctors/${editingDoctor.id}/`, editDoctorForm, {
+        headers: getAuthHeaders()
+      });
+      setEditingDoctor(null);
+      fetchDoctors();
+      fetchStats();
+      toast.success("Doctor account details updated successfully.", "Doctor Updated");
+    } catch (err: any) {
+      const errMsg = err.response?.data?.error || "Failed to update doctor account.";
+      setModalError(errMsg);
+      toast.error(errMsg, "Update Failed");
+    } finally {
+      setModalLoading(false);
+    }
+  };
+
   const handleAddPatient = async (e: React.FormEvent) => {
     e.preventDefault();
     setModalError(null);
+
+    const passErr = validatePassword(newPatient.password);
+    if (passErr) {
+      setModalError(passErr);
+      return;
+    }
+
+    const contactErr = validateContactNumber(newPatient.contact_number);
+    if (contactErr) {
+      setModalError(contactErr);
+      return;
+    }
+
     setModalLoading(true);
 
     try {
@@ -308,6 +403,51 @@ export default function AdminDashboard({ initialTab = "overview" }: { initialTab
     } catch (err: any) {
       const errMsg = err.response?.data?.error || "Failed to delete patient.";
       toast.error(errMsg, "Delete Failed");
+    }
+  };
+
+  const handleOpenEditPatient = (pat: Patient) => {
+    setModalError(null);
+    setEditPatientForm({
+      email: pat.email || "",
+      first_name: pat.first_name || "",
+      last_name: pat.last_name || "",
+      age: pat.age !== null && pat.age !== undefined ? String(pat.age) : "",
+      gender: pat.gender || "Other",
+      contact_number: pat.contact_number || "",
+      address: pat.address || "",
+      blood_group: pat.blood_group || "O+",
+    });
+    setEditingPatient(pat);
+  };
+
+  const handleUpdatePatient = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!editingPatient) return;
+    setModalError(null);
+
+    const contactErr = validateContactNumber(editPatientForm.contact_number);
+    if (contactErr) {
+      setModalError(contactErr);
+      return;
+    }
+
+    setModalLoading(true);
+
+    try {
+      await axios.patch(`/backend/admin/patients/${editingPatient.id}/`, editPatientForm, {
+        headers: getAuthHeaders()
+      });
+      setEditingPatient(null);
+      fetchPatients();
+      fetchStats();
+      toast.success("Patient record updated successfully.", "Patient Updated");
+    } catch (err: any) {
+      const errMsg = err.response?.data?.error || "Failed to update patient record.";
+      setModalError(errMsg);
+      toast.error(errMsg, "Update Failed");
+    } finally {
+      setModalLoading(false);
     }
   };
 
@@ -778,7 +918,14 @@ export default function AdminDashboard({ initialTab = "overview" }: { initialTab
                                 {doc.address || "Main Medical Center"}
                               </span>
                             </td>
-                            <td className="py-4 px-6 text-right">
+                            <td className="py-4 px-6 text-right space-x-1">
+                              <button
+                                onClick={() => handleOpenEditDoctor(doc)}
+                                className="p-2 text-brand-muted hover:text-brand-indigo transition-colors rounded-lg hover:bg-brand-indigo/10"
+                                title="Edit Doctor Account"
+                              >
+                                <Pencil className="w-4 h-4" />
+                              </button>
                               <button
                                 onClick={() => handleDeleteDoctor(doc.id)}
                                 className="p-2 text-brand-muted hover:text-red-600 transition-colors rounded-lg hover:bg-red-50"
@@ -875,7 +1022,14 @@ export default function AdminDashboard({ initialTab = "overview" }: { initialTab
                             <td className="py-4 px-6 text-brand-muted">
                               {pat.contact_number || "Not provided"}
                             </td>
-                            <td className="py-4 px-6 text-right">
+                            <td className="py-4 px-6 text-right space-x-1">
+                              <button
+                                onClick={() => handleOpenEditPatient(pat)}
+                                className="p-2 text-brand-muted hover:text-brand-teal transition-colors rounded-lg hover:bg-brand-teal/10"
+                                title="Edit Patient Record"
+                              >
+                                <Pencil className="w-4 h-4" />
+                              </button>
                               <button
                                 onClick={() => handleDeletePatient(pat.id)}
                                 className="p-2 text-brand-muted hover:text-red-600 transition-colors rounded-lg hover:bg-red-50"
@@ -898,10 +1052,10 @@ export default function AdminDashboard({ initialTab = "overview" }: { initialTab
           {activeTab === "scans" && (
             <div className="space-y-6 animate-in fade-in duration-300">
               <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-                <div className="flex items-center space-x-3">
+                <div className="flex items-center space-x-2 flex-wrap gap-y-2">
                   <button
                     onClick={() => setScanFilter("ALL")}
-                    className={`px-3.5 py-1.5 rounded-lg text-xs font-semibold transition-all ${
+                    className={`px-3 py-1.5 rounded-lg text-xs font-semibold transition-all ${
                       scanFilter === "ALL"
                         ? "bg-brand-indigo text-brand-white"
                         : "bg-brand-white text-brand-navy border border-brand-border hover:bg-brand-surface"
@@ -910,18 +1064,28 @@ export default function AdminDashboard({ initialTab = "overview" }: { initialTab
                     All Scans ({scans.length})
                   </button>
                   <button
+                    onClick={() => setScanFilter("Symptoms of Pneumonia")}
+                    className={`px-3 py-1.5 rounded-lg text-xs font-semibold transition-all ${
+                      scanFilter === "Symptoms of Pneumonia"
+                        ? "bg-amber-600 text-white"
+                        : "bg-brand-white text-amber-700 border border-brand-border hover:bg-amber-50"
+                    }`}
+                  >
+                    Symptoms of Pneumonia ({scans.filter((s) => s.result.toLowerCase() === "symptoms of pneumonia").length})
+                  </button>
+                  <button
                     onClick={() => setScanFilter("Pneumonia")}
-                    className={`px-3.5 py-1.5 rounded-lg text-xs font-semibold transition-all ${
+                    className={`px-3 py-1.5 rounded-lg text-xs font-semibold transition-all ${
                       scanFilter === "Pneumonia"
                         ? "bg-red-600 text-white"
                         : "bg-brand-white text-red-600 border border-brand-border hover:bg-red-50"
                     }`}
                   >
-                    Pneumonia Positive ({scans.filter((s) => s.result === "Pneumonia").length})
+                    Pneumonia ({scans.filter((s) => s.result.toLowerCase() === "pneumonia").length})
                   </button>
                   <button
                     onClick={() => setScanFilter("Normal")}
-                    className={`px-3.5 py-1.5 rounded-lg text-xs font-semibold transition-all ${
+                    className={`px-3 py-1.5 rounded-lg text-xs font-semibold transition-all ${
                       scanFilter === "Normal"
                         ? "bg-emerald-600 text-white"
                         : "bg-brand-white text-emerald-600 border border-brand-border hover:bg-emerald-50"
@@ -1116,8 +1280,17 @@ export default function AdminDashboard({ initialTab = "overview" }: { initialTab
                   placeholder="••••••••"
                   value={newDoctor.password}
                   onChange={(e) => setNewDoctor({ ...newDoctor, password: e.target.value })}
-                  className="w-full bg-brand-surface border border-brand-border rounded-lg p-2.5 text-sm text-brand-navy focus:outline-none focus:border-brand-indigo"
+                  className={`w-full bg-brand-surface border ${
+                    newDoctor.password && validatePassword(newDoctor.password)
+                      ? "border-red-400 focus:border-red-400"
+                      : "border-brand-border focus:border-brand-indigo"
+                  } rounded-lg p-2.5 text-sm text-brand-navy focus:outline-none`}
                 />
+                {newDoctor.password && validatePassword(newDoctor.password) && (
+                  <p className="text-[11px] text-red-500 mt-1 font-medium">
+                    {validatePassword(newDoctor.password)}
+                  </p>
+                )}
               </div>
 
               <div>
@@ -1126,11 +1299,21 @@ export default function AdminDashboard({ initialTab = "overview" }: { initialTab
                 </label>
                 <input
                   type="text"
-                  placeholder="+1 (555) 019-2834"
+                  maxLength={10}
+                  placeholder="e.g. 9800000000"
                   value={newDoctor.contact_number}
-                  onChange={(e) => setNewDoctor({ ...newDoctor, contact_number: e.target.value })}
-                  className="w-full bg-brand-surface border border-brand-border rounded-lg p-2.5 text-sm text-brand-navy focus:outline-none focus:border-brand-indigo"
+                  onChange={(e) => setNewDoctor({ ...newDoctor, contact_number: e.target.value.replace(/\D/g, "") })}
+                  className={`w-full bg-brand-surface border ${
+                    validateContactNumber(newDoctor.contact_number)
+                      ? "border-red-400 focus:border-red-400"
+                      : "border-brand-border focus:border-brand-indigo"
+                  } rounded-lg p-2.5 text-sm text-brand-navy focus:outline-none`}
                 />
+                {validateContactNumber(newDoctor.contact_number) && (
+                  <p className="text-[11px] text-red-500 mt-1 font-medium">
+                    {validateContactNumber(newDoctor.contact_number)}
+                  </p>
+                )}
               </div>
 
               <div>
@@ -1262,8 +1445,17 @@ export default function AdminDashboard({ initialTab = "overview" }: { initialTab
                   placeholder="••••••••"
                   value={newPatient.password}
                   onChange={(e) => setNewPatient({ ...newPatient, password: e.target.value })}
-                  className="w-full bg-brand-surface border border-brand-border rounded-lg p-2.5 text-sm text-brand-navy focus:outline-none focus:border-brand-teal"
+                  className={`w-full bg-brand-surface border ${
+                    newPatient.password && validatePassword(newPatient.password)
+                      ? "border-red-400 focus:border-red-400"
+                      : "border-brand-border focus:border-brand-teal"
+                  } rounded-lg p-2.5 text-sm text-brand-navy focus:outline-none`}
                 />
+                {newPatient.password && validatePassword(newPatient.password) && (
+                  <p className="text-[11px] text-red-500 mt-1 font-medium">
+                    {validatePassword(newPatient.password)}
+                  </p>
+                )}
               </div>
 
               <div className="grid grid-cols-3 gap-4">
@@ -1322,11 +1514,21 @@ export default function AdminDashboard({ initialTab = "overview" }: { initialTab
                 </label>
                 <input
                   type="text"
-                  placeholder="+1 (555) 482-9012"
+                  maxLength={10}
+                  placeholder="e.g. 9800000000"
                   value={newPatient.contact_number}
-                  onChange={(e) => setNewPatient({ ...newPatient, contact_number: e.target.value })}
-                  className="w-full bg-brand-surface border border-brand-border rounded-lg p-2.5 text-sm text-brand-navy focus:outline-none focus:border-brand-teal"
+                  onChange={(e) => setNewPatient({ ...newPatient, contact_number: e.target.value.replace(/\D/g, "") })}
+                  className={`w-full bg-brand-surface border ${
+                    validateContactNumber(newPatient.contact_number)
+                      ? "border-red-400 focus:border-red-400"
+                      : "border-brand-border focus:border-brand-teal"
+                  } rounded-lg p-2.5 text-sm text-brand-navy focus:outline-none`}
                 />
+                {validateContactNumber(newPatient.contact_number) && (
+                  <p className="text-[11px] text-red-500 mt-1 font-medium">
+                    {validateContactNumber(newPatient.contact_number)}
+                  </p>
+                )}
               </div>
 
               <div>
@@ -1356,6 +1558,322 @@ export default function AdminDashboard({ initialTab = "overview" }: { initialTab
                   className="px-5 py-2 bg-brand-teal text-white rounded-lg text-sm font-semibold hover:bg-brand-teal/90 disabled:opacity-50"
                 >
                   {modalLoading ? "Registering..." : "Save Patient Account"}
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+
+      {/* EDIT DOCTOR MODAL */}
+      {editingDoctor && (
+        <div className="fixed inset-0 z-50 bg-black/50 backdrop-blur-sm flex items-center justify-center p-4">
+          <div className="bg-brand-white rounded-2xl border border-brand-border max-w-lg w-full p-6 shadow-xl animate-in zoom-in-95 duration-200">
+            <div className="flex justify-between items-center pb-4 border-b border-brand-border mb-4">
+              <div className="flex items-center space-x-2">
+                <Pencil className="w-5 h-5 text-brand-indigo" />
+                <h3 className="font-bold text-brand-navy text-lg">Edit Doctor Account</h3>
+              </div>
+              <button
+                onClick={() => setEditingDoctor(null)}
+                className="text-brand-muted hover:text-brand-navy p-1 rounded-lg"
+              >
+                <X className="w-5 h-5" />
+              </button>
+            </div>
+
+            {modalError && (
+              <div className="mb-4 p-3 bg-red-50 border border-red-200 text-red-600 rounded-lg text-xs font-medium">
+                {modalError}
+              </div>
+            )}
+
+            <form onSubmit={handleUpdateDoctor} className="space-y-4">
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <label className="block text-xs font-semibold text-brand-muted uppercase mb-1">
+                    First Name
+                  </label>
+                  <input
+                    type="text"
+                    required
+                    placeholder="e.g. Robert"
+                    value={editDoctorForm.first_name}
+                    onChange={(e) => setEditDoctorForm({ ...editDoctorForm, first_name: e.target.value })}
+                    className="w-full bg-brand-surface border border-brand-border rounded-lg p-2.5 text-sm text-brand-navy focus:outline-none focus:border-brand-indigo"
+                  />
+                </div>
+                <div>
+                  <label className="block text-xs font-semibold text-brand-muted uppercase mb-1">
+                    Last Name
+                  </label>
+                  <input
+                    type="text"
+                    required
+                    placeholder="e.g. Chen"
+                    value={editDoctorForm.last_name}
+                    onChange={(e) => setEditDoctorForm({ ...editDoctorForm, last_name: e.target.value })}
+                    className="w-full bg-brand-surface border border-brand-border rounded-lg p-2.5 text-sm text-brand-navy focus:outline-none focus:border-brand-indigo"
+                  />
+                </div>
+              </div>
+
+              <div>
+                <label className="block text-xs font-semibold text-brand-muted uppercase mb-1">
+                  Email Address
+                </label>
+                <input
+                  type="email"
+                  required
+                  placeholder="doctor@hospital.org"
+                  value={editDoctorForm.email}
+                  onChange={(e) => setEditDoctorForm({ ...editDoctorForm, email: e.target.value })}
+                  className="w-full bg-brand-surface border border-brand-border rounded-lg p-2.5 text-sm text-brand-navy focus:outline-none focus:border-brand-indigo"
+                />
+              </div>
+
+              <div>
+                <label className="block text-xs font-semibold text-brand-muted uppercase mb-1">
+                  Contact Phone Number
+                </label>
+                <input
+                  type="text"
+                  maxLength={10}
+                  placeholder="e.g. 9800000000"
+                  value={editDoctorForm.contact_number}
+                  onChange={(e) => setEditDoctorForm({ ...editDoctorForm, contact_number: e.target.value.replace(/\D/g, "") })}
+                  className={`w-full bg-brand-surface border ${
+                    validateContactNumber(editDoctorForm.contact_number)
+                      ? "border-red-400 focus:border-red-400"
+                      : "border-brand-border focus:border-brand-indigo"
+                  } rounded-lg p-2.5 text-sm text-brand-navy focus:outline-none`}
+                />
+                {validateContactNumber(editDoctorForm.contact_number) && (
+                  <p className="text-[11px] text-red-500 mt-1 font-medium">
+                    {validateContactNumber(editDoctorForm.contact_number)}
+                  </p>
+                )}
+              </div>
+
+              <div>
+                <label className="block text-xs font-semibold text-brand-muted uppercase mb-1">
+                  Assign Clinic / Medical Center
+                </label>
+                <select
+                  value={editDoctorForm.clinic_id}
+                  onChange={(e) => setEditDoctorForm({ ...editDoctorForm, clinic_id: e.target.value })}
+                  className="w-full bg-brand-surface border border-brand-border rounded-lg p-2.5 text-sm text-brand-navy focus:outline-none focus:border-brand-indigo font-medium"
+                >
+                  <option value="">-- Choose Clinic Center --</option>
+                  {clinics.map((c) => (
+                    <option key={c.id} value={c.id}>
+                      {c.name} {c.specialty ? `• ${c.specialty}` : ""}
+                    </option>
+                  ))}
+                </select>
+              </div>
+
+              <div>
+                <label className="block text-xs font-semibold text-brand-muted uppercase mb-1">
+                  Department / Room Notes
+                </label>
+                <input
+                  type="text"
+                  placeholder="e.g. Pulmonology Wing B, Room 302"
+                  value={editDoctorForm.address}
+                  onChange={(e) => setEditDoctorForm({ ...editDoctorForm, address: e.target.value })}
+                  className="w-full bg-brand-surface border border-brand-border rounded-lg p-2.5 text-sm text-brand-navy focus:outline-none focus:border-brand-indigo"
+                />
+              </div>
+
+              <div className="pt-4 border-t border-brand-border flex justify-end space-x-3">
+                <button
+                  type="button"
+                  onClick={() => setEditingDoctor(null)}
+                  className="px-4 py-2 text-sm font-medium text-brand-muted hover:text-brand-navy"
+                >
+                  Cancel
+                </button>
+                <button
+                  type="submit"
+                  disabled={modalLoading}
+                  className="px-5 py-2 bg-brand-indigo text-white rounded-lg text-sm font-semibold hover:bg-brand-indigo/90 disabled:opacity-50"
+                >
+                  {modalLoading ? "Saving..." : "Update Doctor"}
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+
+      {/* EDIT PATIENT MODAL */}
+      {editingPatient && (
+        <div className="fixed inset-0 z-50 bg-black/50 backdrop-blur-sm flex items-center justify-center p-4">
+          <div className="bg-brand-white rounded-2xl border border-brand-border max-w-lg w-full p-6 shadow-xl animate-in zoom-in-95 duration-200 max-h-[90vh] overflow-y-auto">
+            <div className="flex justify-between items-center pb-4 border-b border-brand-border mb-4">
+              <div className="flex items-center space-x-2">
+                <Pencil className="w-5 h-5 text-brand-teal" />
+                <h3 className="font-bold text-brand-navy text-lg">Edit Patient Record</h3>
+              </div>
+              <button
+                onClick={() => setEditingPatient(null)}
+                className="text-brand-muted hover:text-brand-navy p-1 rounded-lg"
+              >
+                <X className="w-5 h-5" />
+              </button>
+            </div>
+
+            {modalError && (
+              <div className="mb-4 p-3 bg-red-50 border border-red-200 text-red-600 rounded-lg text-xs font-medium">
+                {modalError}
+              </div>
+            )}
+
+            <form onSubmit={handleUpdatePatient} className="space-y-4">
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <label className="block text-xs font-semibold text-brand-muted uppercase mb-1">
+                    First Name
+                  </label>
+                  <input
+                    type="text"
+                    required
+                    placeholder="e.g. John"
+                    value={editPatientForm.first_name}
+                    onChange={(e) => setEditPatientForm({ ...editPatientForm, first_name: e.target.value })}
+                    className="w-full bg-brand-surface border border-brand-border rounded-lg p-2.5 text-sm text-brand-navy focus:outline-none focus:border-brand-teal"
+                  />
+                </div>
+                <div>
+                  <label className="block text-xs font-semibold text-brand-muted uppercase mb-1">
+                    Last Name
+                  </label>
+                  <input
+                    type="text"
+                    required
+                    placeholder="e.g. Doe"
+                    value={editPatientForm.last_name}
+                    onChange={(e) => setEditPatientForm({ ...editPatientForm, last_name: e.target.value })}
+                    className="w-full bg-brand-surface border border-brand-border rounded-lg p-2.5 text-sm text-brand-navy focus:outline-none focus:border-brand-teal"
+                  />
+                </div>
+              </div>
+
+              <div>
+                <label className="block text-xs font-semibold text-brand-muted uppercase mb-1">
+                  Email Address
+                </label>
+                <input
+                  type="email"
+                  required
+                  placeholder="patient@gmail.com"
+                  value={editPatientForm.email}
+                  onChange={(e) => setEditPatientForm({ ...editPatientForm, email: e.target.value })}
+                  className="w-full bg-brand-surface border border-brand-border rounded-lg p-2.5 text-sm text-brand-navy focus:outline-none focus:border-brand-teal"
+                />
+              </div>
+
+              <div className="grid grid-cols-3 gap-4">
+                <div>
+                  <label className="block text-xs font-semibold text-brand-muted uppercase mb-1">
+                    Age
+                  </label>
+                  <input
+                    type="number"
+                    placeholder="45"
+                    value={editPatientForm.age}
+                    onChange={(e) => setEditPatientForm({ ...editPatientForm, age: e.target.value })}
+                    className="w-full bg-brand-surface border border-brand-border rounded-lg p-2.5 text-sm text-brand-navy focus:outline-none focus:border-brand-teal"
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-xs font-semibold text-brand-muted uppercase mb-1">
+                    Gender
+                  </label>
+                  <select
+                    value={editPatientForm.gender}
+                    onChange={(e) => setEditPatientForm({ ...editPatientForm, gender: e.target.value })}
+                    className="w-full bg-brand-surface border border-brand-border rounded-lg p-2.5 text-sm text-brand-navy focus:outline-none focus:border-brand-teal"
+                  >
+                    <option value="Male">Male</option>
+                    <option value="Female">Female</option>
+                    <option value="Other">Other</option>
+                  </select>
+                </div>
+
+                <div>
+                  <label className="block text-xs font-semibold text-brand-muted uppercase mb-1">
+                    Blood Group
+                  </label>
+                  <select
+                    value={editPatientForm.blood_group}
+                    onChange={(e) => setEditPatientForm({ ...editPatientForm, blood_group: e.target.value })}
+                    className="w-full bg-brand-surface border border-brand-border rounded-lg p-2.5 text-sm text-brand-navy focus:outline-none focus:border-brand-teal"
+                  >
+                    <option value="A+">A+</option>
+                    <option value="A-">A-</option>
+                    <option value="B+">B+</option>
+                    <option value="B-">B-</option>
+                    <option value="AB+">AB+</option>
+                    <option value="AB-">AB-</option>
+                    <option value="O+">O+</option>
+                    <option value="O-">O-</option>
+                  </select>
+                </div>
+              </div>
+
+              <div>
+                <label className="block text-xs font-semibold text-brand-muted uppercase mb-1">
+                  Contact Phone Number
+                </label>
+                <input
+                  type="text"
+                  maxLength={10}
+                  placeholder="e.g. 9800000000"
+                  value={editPatientForm.contact_number}
+                  onChange={(e) => setEditPatientForm({ ...editPatientForm, contact_number: e.target.value.replace(/\D/g, "") })}
+                  className={`w-full bg-brand-surface border ${
+                    validateContactNumber(editPatientForm.contact_number)
+                      ? "border-red-400 focus:border-red-400"
+                      : "border-brand-border focus:border-brand-teal"
+                  } rounded-lg p-2.5 text-sm text-brand-navy focus:outline-none`}
+                />
+                {validateContactNumber(editPatientForm.contact_number) && (
+                  <p className="text-[11px] text-red-500 mt-1 font-medium">
+                    {validateContactNumber(editPatientForm.contact_number)}
+                  </p>
+                )}
+              </div>
+
+              <div>
+                <label className="block text-xs font-semibold text-brand-muted uppercase mb-1">
+                  Residential Address
+                </label>
+                <textarea
+                  rows={2}
+                  placeholder="742 Evergreen Terrace, Springfield"
+                  value={editPatientForm.address}
+                  onChange={(e) => setEditPatientForm({ ...editPatientForm, address: e.target.value })}
+                  className="w-full bg-brand-surface border border-brand-border rounded-lg p-2.5 text-sm text-brand-navy focus:outline-none focus:border-brand-teal resize-none"
+                />
+              </div>
+
+              <div className="pt-4 border-t border-brand-border flex justify-end space-x-3">
+                <button
+                  type="button"
+                  onClick={() => setEditingPatient(null)}
+                  className="px-4 py-2 text-sm font-medium text-brand-muted hover:text-brand-navy"
+                >
+                  Cancel
+                </button>
+                <button
+                  type="submit"
+                  disabled={modalLoading}
+                  className="px-5 py-2 bg-brand-teal text-white rounded-lg text-sm font-semibold hover:bg-brand-teal/90 disabled:opacity-50"
+                >
+                  {modalLoading ? "Updating..." : "Update Patient"}
                 </button>
               </div>
             </form>

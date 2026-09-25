@@ -180,9 +180,9 @@ export default function PatientScansPage() {
                     <div className="absolute top-4 right-4">
                       <span
                         className={`inline-flex items-center px-3 py-1 rounded-full text-xs font-bold border shadow-sm ${
-                          scan.result === "Normal"
-                            ? "bg-emerald-500/15 text-emerald-500 border-emerald-500/30"
-                            : "bg-rose-500/15 text-rose-500 border-rose-500/30"
+                          scan.result === "Pneumonia"
+                            ? "bg-rose-500/15 text-rose-500 border-rose-500/30"
+                            : "bg-emerald-500/15 text-emerald-500 border-emerald-500/30"
                         }`}
                       >
                         {scan.result.toUpperCase()}
@@ -219,9 +219,9 @@ export default function PatientScansPage() {
                       <div className="h-1.5 w-full bg-brand-surface rounded-full overflow-hidden">
                         <div
                           className={`h-full rounded-full ${
-                            scan.result === "Normal"
-                              ? "bg-brand-teal"
-                              : "bg-red-500"
+                            scan.result === "Pneumonia"
+                              ? "bg-red-500"
+                              : "bg-brand-teal"
                           }`}
                           style={{ width: `${scan.confidence * 100}%` }}
                         />
@@ -230,10 +230,10 @@ export default function PatientScansPage() {
 
                     <div className="border-t border-brand-border/40 pt-4">
                       <h4 className="text-xs font-bold text-brand-navy flex items-center space-x-1.5 mb-1.5">
-                        {scan.result === "Normal" ? (
-                          <CheckCircle className="w-4 h-4 text-brand-teal shrink-0" />
-                        ) : (
+                        {scan.result === "Pneumonia" ? (
                           <AlertCircle className="w-4 h-4 text-rose-500 shrink-0" />
+                        ) : (
+                          <CheckCircle className="w-4 h-4 text-brand-teal shrink-0" />
                         )}
                         <span>Diagnostic Report Summary</span>
                       </h4>
